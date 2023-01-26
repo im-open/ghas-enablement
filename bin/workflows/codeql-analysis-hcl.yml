@@ -5,9 +5,9 @@ on:
     branches: ["main", "master"]
   pull_request:
     branches: ["main", "master"]
-  workflow_dispatch:
   schedule:
     - cron: "27 4 * * 5"
+  workflow_dispatch:
 
 jobs:
   run-scan:
