@@ -21,6 +21,6 @@ describe("Testing Required Global Vars", () => {
     expect(title).toStrictEqual("GitHub Advanced Security - Code Scanning");
   });
   it("Should have a branch name", async () => {
-    expect(ref).toStrictEqual(`refs/heads/ghas-123`);
+    expect(ref).toStrictEqual(`refs/heads/ghas-enablement`);
   });
 });
