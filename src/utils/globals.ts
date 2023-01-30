@@ -6,11 +6,6 @@ import { existsSync } from "fs";
 
 import os from "os";
 
-const rs = randomstring.generate({
-  length: 5,
-  charset: "alphabetic",
-}) as string;
-
 export const baseRestApiURL =
   process.env.GHES == "true"
     ? `${process.env.GHES_SERVER_BASE_URL}/api/v3`
@@ -24,7 +19,7 @@ export const baseURL =
     ? process.env.GHES_SERVER_BASE_URL
     : "https://github.com";
 
-export const ref = `refs/heads/ghas-${rs}` as string;
+export const ref = `refs/heads/ghas-enablement` as string;
 export const message = "Created CodeQL Analysis File";
 export const title = "GitHub Advanced Security - Code Scanning" as string;
 export const tempDIR = "tempGitLocations" as string;
