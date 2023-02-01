@@ -15,7 +15,6 @@ import { enableDependabotAlerts } from "./enableDependabotAlerts";
 import { enableDependabotFixes } from "./enableDependabotUpdates";
 import { enableIssueCreation } from "./enableIssueCreation";
 import { auth as generateAuth } from "./clients";
-// import { checkIfCodeQLHasAlreadyRanOnRepo } from "./checkCodeQLEnablement";
 
 import { Octokit } from "@octokit/core";
 import { inform, reposFileLocation } from "./globals.js";
@@ -96,21 +95,6 @@ export const worker = async (): Promise<unknown> => {
 
       // Kick off the process for enabling Code Scanning only if it is set to be enabled AND the primary language for the repo exists. If it doesn't exist that means CodeQL doesn't support it.
       if (enableCodeScanning && primaryLanguage != "no-language") {
-        // First, let's check and see if CodeQL has already ran on that repository. If it has, we don't need to do anything.
-        // const codeQLAlreadyRan = await checkIfCodeQLHasAlreadyRanOnRepo(
-        //   owner,
-        //   repo,
-        //   client
-        // );
-
-        // inform(
-        //   `Has ${owner}/${repo} had a CodeQL scan uploaded? ${codeQLAlreadyRan}`
-        // );
-
-        // if (!codeQLAlreadyRan) {
-        // inform(
-        //   `As ${owner}/${repo} hasn't had a CodeQL Scan, going to run CodeQL enablement`
-        // );
         const defaultBranch = await findDefaultBranch(owner, repo, client);
         const defaultBranchSHA = await findDefaultBranchSHA(
           defaultBranch,
