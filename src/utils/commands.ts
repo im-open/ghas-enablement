@@ -30,8 +30,7 @@ export const generalCommands = (
       args: [
         ...(platform === "darwin"
           ? ["clone", "--depth", "1", "--filter=blob:none"]
-          : // ? ["clone", "--depth", "1", "--filter=blob:none", "--sparse"]
-            ["clone"]),
+          : ["clone"]),
         `${baseURL}/${owner}/${repo}.git`,
       ],
       cwd: `/${destDir}/${tempDIR}`,
@@ -64,7 +63,6 @@ export const generalCommands = (
     {
       command: "git",
       args: [
-        // ...(platform === "darwin" ? ["add", "--sparse"] : ["add"]),
         ...(platform === "darwin" ? ["add"] : ["add"]),
         winSeparator(
           `.github/workflows/codeql-analysis-${codeQLLanguage}.yml`,
