@@ -89,21 +89,16 @@ const getRepositoryInOrganizationPaginate = async (
       inform(
         `Repo Name: ${nameWithOwner} Permission: ${viewerPermission} Archived: ${isArchived} Language: ${name} Visibility: ${visibility}`
       );
-      const languageCheck = process.env.LANGUAGE_TO_CHECK
+      const languageCheck = (process.env.LANGUAGE_TO_CHECK || "")
         ? name.toLocaleLowerCase() === `${process.env.LANGUAGE_TO_CHECK}`
         : true;
-      const publicRepoCheck =
-        process.env.GHES === "true"
-          ? true
-          : visibility === "PRIVATE" || visibility === "INTERNAL"
-          ? true
-          : false;
-      return (viewerPermission === "ADMIN" || viewerPermission === null) &&
+      let returnValue = (viewerPermission === "ADMIN" || viewerPermission === null) &&
         isArchived === false &&
-        languageCheck &&
-        publicRepoCheck
+        languageCheck
         ? true
         : false;
+
+      return returnValue;
     });
 
     inform(
