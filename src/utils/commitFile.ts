@@ -60,7 +60,8 @@ export const commitFileMac = async (
       repo,
       branch,
       fileName,
-      authBaseURL
+      authBaseURL,
+      codeQLLanguage
     ) as commands;
     inform(gitCommands);
   } catch (err) {
