@@ -6,6 +6,8 @@ import { GraphQlQueryResponseData } from "@octokit/graphql";
 
 import {
   GraphQLQueryResponse,
+  GraphQLQueryResponseGetRepos,
+  GraphQLQueryResponseGetReposRaw,
   usersWriteAdminReposArray,
 } from "../../types/common";
 
@@ -31,7 +33,27 @@ const performRepositoryQuery = async (
       slug,
       after,
     })) as GraphQlQueryResponseData;
-    return [hasNextPage, endCursor, nodes];
+
+    let currentNodes = nodes as Array<GraphQLQueryResponseGetReposRaw>;
+    console.log(nodes)
+    let newNodes = new Array<GraphQLQueryResponseGetRepos>();
+    currentNodes.forEach(node => {
+      node.languages.nodes.forEach(lang => {
+        const newNode: GraphQLQueryResponseGetRepos = {
+          nameWithOwner: node.nameWithOwner,
+          isArchived: node.isArchived,
+          viewerPermission: node.viewerPermission,
+          visibility: node.viewerPermission,
+          primaryLanguage: {
+            name: lang.name
+          }
+        };
+        newNodes.push(newNode)
+      });
+    });
+
+
+    return [hasNextPage, endCursor, newNodes];
   } catch (err) {
     error(err);
     throw err;
@@ -53,7 +75,7 @@ const getRepositoryInOrganizationPaginate = async (
       ec
     );
 
-    /* If (the viewerPermission is set to NULL OR the viewerPermission is set to ADMIN) 
+    /* If (the viewerPermission is set to NULL OR the viewerPermission is set to ADMIN)
       OR the reposiory is not archived, keep in the array*/
     const results = await filterAsync(nodes, async (value) => {
       const {

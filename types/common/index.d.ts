@@ -112,6 +112,22 @@ type Func = (
 
 type GetGraphQLQueryFunction = () => string;
 
+export type GraphQLQueryResponseGetReposRaw = {
+  nameWithOwner: string;
+  isArchived: boolean;
+  viewerPermission: string;
+  visibility: string;
+  languages: Languages
+}
+
+export type Languages = {
+  nodes: LanguagesNode[];
+}
+
+export type LanguagesNode = {
+  name: string;
+}
+
 export type GraphQLQueryResponseGetRepos = {
   nameWithOwner: string;
   isArchived: boolean;
@@ -123,5 +139,4 @@ export type GraphQLQueryResponseGetRepos = {
 };
 
 export type GraphQLQueryResponseData = GraphQLQueryResponseGetRepos[];
-
 export type GraphQLQueryResponse = [string, string, GraphQLQueryResponseData];
