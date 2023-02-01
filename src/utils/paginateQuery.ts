@@ -35,8 +35,8 @@ const performRepositoryQuery = async (
     })) as GraphQlQueryResponseData;
 
     let currentNodes = nodes as Array<GraphQLQueryResponseGetReposRaw>;
-    console.log(nodes)
     let newNodes = new Array<GraphQLQueryResponseGetRepos>();
+
     currentNodes.forEach(node => {
       node.languages.nodes.forEach(lang => {
         const newNode: GraphQLQueryResponseGetRepos = {
