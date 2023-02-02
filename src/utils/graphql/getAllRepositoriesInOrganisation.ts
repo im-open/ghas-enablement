@@ -1,5 +1,5 @@
 export const getRepositoriesQuery = (): string => {
-  const query = ` 
+  const query = `
   query getRepositoriesQuery($slug: String!, $after: String, $first: Int = 100) {
     viewer {
       login
@@ -18,9 +18,11 @@ export const getRepositoriesQuery = (): string => {
           isArchived
           viewerPermission
           visibility
-          primaryLanguage {
+          languages(first: $first) {
+            nodes {
               name
             }
+          }
         }
         totalCount
         pageInfo {

@@ -33,6 +33,9 @@ export const getcodeQLLanguage = (primaryLanguage: string): string => {
       // hcl == terraform
       codeQLLang = "hcl";
       break;
+    case "powershell":
+      codeQLLang = "powershell";
+      break;
     default:
       codeQLLang = "no-language";
       break;

@@ -2,8 +2,8 @@
 
 import { readFileSync } from "node:fs";
 
-import { findDefulatBranch } from "./findDefaultBranch.js";
-import { findDefulatBranchSHA } from "./findDefaultBranchSHA.js";
+import { findDefaultBranch } from "./findDefaultBranch.js";
+import { findDefaultBranchSHA } from "./findDefaultBranchSHA.js";
 import { createBranch } from "./createBranch.js";
 import { enableSecretScanningAlerts } from "./enableSecretScanning";
 import { createPullRequest } from "./createPullRequest.js";
@@ -15,7 +15,6 @@ import { enableDependabotAlerts } from "./enableDependabotAlerts";
 import { enableDependabotFixes } from "./enableDependabotUpdates";
 import { enableIssueCreation } from "./enableIssueCreation";
 import { auth as generateAuth } from "./clients";
-import { checkIfCodeQLHasAlreadyRanOnRepo } from "./checkCodeQLEnablement";
 
 import { Octokit } from "@octokit/core";
 import { inform, reposFileLocation } from "./globals.js";
@@ -96,43 +95,41 @@ export const worker = async (): Promise<unknown> => {
 
       // Kick off the process for enabling Code Scanning only if it is set to be enabled AND the primary language for the repo exists. If it doesn't exist that means CodeQL doesn't support it.
       if (enableCodeScanning && primaryLanguage != "no-language") {
-        // First, let's check and see if CodeQL has already ran on that repository. If it has, we don't need to do anything.
-        const codeQLAlreadyRan = await checkIfCodeQLHasAlreadyRanOnRepo(
+        const defaultBranch = await findDefaultBranch(owner, repo, client);
+        const defaultBranchSHA = await findDefaultBranchSHA(
+          defaultBranch,
           owner,
           repo,
           client
         );
-
-        inform(
-          `Has ${owner}/${repo} had a CodeQL scan uploaded? ${codeQLAlreadyRan}`
+        const ref = await createBranch(
+          defaultBranchSHA,
+          owner,
+          repo,
+          primaryLanguage,
+          client
         );
-
-        if (!codeQLAlreadyRan) {
-          inform(
-            `As ${owner}/${repo} hasn't had a CodeQL Scan, going to run CodeQL enablement`
-          );
-          const defaultBranch = await findDefulatBranch(owner, repo, client);
-          const defaultBranchSHA = await findDefulatBranchSHA(
-            defaultBranch,
+        const authToken = (await generateAuth()) as string;
+        await commitFileMac(owner, repo, primaryLanguage, ref, authToken);
+        const pullRequestURL = await createPullRequest(
+          defaultBranch,
+          ref,
+          owner,
+          repo,
+          client,
+          primaryLanguage
+        );
+        if (createIssue) {
+          await enableIssueCreation(
+            pullRequestURL,
             owner,
             repo,
-            client
+            client,
+            primaryLanguage
           );
-          const ref = await createBranch(defaultBranchSHA, owner, repo, client);
-          const authToken = (await generateAuth()) as string;
-          await commitFileMac(owner, repo, primaryLanguage, ref, authToken);
-          const pullRequestURL = await createPullRequest(
-            defaultBranch,
-            ref,
-            owner,
-            repo,
-            client
-          );
-          if (createIssue) {
-            await enableIssueCreation(pullRequestURL, owner, repo, client);
-          }
-          await writeToFile(pullRequestURL);
         }
+        await writeToFile(pullRequestURL);
+        // }
       }
     }
   }

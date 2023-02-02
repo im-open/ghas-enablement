@@ -7,7 +7,8 @@ export const generalCommands = (
   repo: string,
   branch: string,
   fileName: string,
-  baseURL: string
+  baseURL: string,
+  codeQLLanguage: string
 ): commands => {
   const commands = [
     // Clean the workspace
@@ -28,8 +29,7 @@ export const generalCommands = (
       command: "git",
       args: [
         ...(platform === "darwin"
-        ? ["clone", "--depth", "1", "--filter=blob:none"]
-        // ? ["clone", "--depth", "1", "--filter=blob:none", "--sparse"]
+          ? ["clone", "--depth", "1", "--filter=blob:none"]
           : ["clone"]),
         `${baseURL}/${owner}/${repo}.git`,
       ],
@@ -54,7 +54,7 @@ export const generalCommands = (
         winSeparator(`./bin/workflows/${fileName}`, platform),
         winSeparator(
           `/${destDir}/${tempDIR}/${repo}/` +
-            ".github/workflows/codeql-analysis.yml",
+            `.github/workflows/codeql-analysis-${codeQLLanguage}.yml`,
           platform
         ),
       ],
@@ -63,9 +63,11 @@ export const generalCommands = (
     {
       command: "git",
       args: [
-        // ...(platform === "darwin" ? ["add", "--sparse"] : ["add"]),
         ...(platform === "darwin" ? ["add"] : ["add"]),
-        winSeparator(".github/workflows/codeql-analysis.yml", platform),
+        winSeparator(
+          `.github/workflows/codeql-analysis-${codeQLLanguage}.yml`,
+          platform
+        ),
       ],
       cwd: `/${destDir}/${tempDIR}/${repo}`,
     },

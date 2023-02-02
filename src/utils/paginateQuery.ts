@@ -6,6 +6,8 @@ import { GraphQlQueryResponseData } from "@octokit/graphql";
 
 import {
   GraphQLQueryResponse,
+  GraphQLQueryResponseGetRepos,
+  GraphQLQueryResponseGetReposRaw,
   usersWriteAdminReposArray,
 } from "../../types/common";
 
@@ -31,7 +33,27 @@ const performRepositoryQuery = async (
       slug,
       after,
     })) as GraphQlQueryResponseData;
-    return [hasNextPage, endCursor, nodes];
+
+    let currentNodes = nodes as Array<GraphQLQueryResponseGetReposRaw>;
+    let newNodes = new Array<GraphQLQueryResponseGetRepos>();
+
+    currentNodes.forEach(node => {
+      node.languages.nodes.forEach(lang => {
+        const newNode: GraphQLQueryResponseGetRepos = {
+          nameWithOwner: node.nameWithOwner,
+          isArchived: node.isArchived,
+          viewerPermission: node.viewerPermission,
+          visibility: node.viewerPermission,
+          primaryLanguage: {
+            name: lang.name
+          }
+        };
+        newNodes.push(newNode)
+      });
+    });
+
+
+    return [hasNextPage, endCursor, newNodes];
   } catch (err) {
     error(err);
     throw err;
@@ -53,7 +75,7 @@ const getRepositoryInOrganizationPaginate = async (
       ec
     );
 
-    /* If (the viewerPermission is set to NULL OR the viewerPermission is set to ADMIN) 
+    /* If (the viewerPermission is set to NULL OR the viewerPermission is set to ADMIN)
       OR the reposiory is not archived, keep in the array*/
     const results = await filterAsync(nodes, async (value) => {
       const {
@@ -67,21 +89,16 @@ const getRepositoryInOrganizationPaginate = async (
       inform(
         `Repo Name: ${nameWithOwner} Permission: ${viewerPermission} Archived: ${isArchived} Language: ${name} Visibility: ${visibility}`
       );
-      const languageCheck = process.env.LANGUAGE_TO_CHECK
+      const languageCheck = (process.env.LANGUAGE_TO_CHECK || "")
         ? name.toLocaleLowerCase() === `${process.env.LANGUAGE_TO_CHECK}`
         : true;
-      const publicRepoCheck =
-        process.env.GHES === "true"
-          ? true
-          : visibility === "PRIVATE" || visibility === "INTERNAL"
-          ? true
-          : false;
-      return (viewerPermission === "ADMIN" || viewerPermission === null) &&
+      let returnValue = (viewerPermission === "ADMIN" || viewerPermission === null) &&
         isArchived === false &&
-        languageCheck &&
-        publicRepoCheck
+        languageCheck
         ? true
         : false;
+
+      return returnValue;
     });
 
     inform(

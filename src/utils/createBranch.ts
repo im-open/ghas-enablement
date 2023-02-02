@@ -8,12 +8,14 @@ export const createBranch = async (
   sha: string,
   owner: string,
   repo: string,
+  primaryLanguage: string,
   octokit: Octokit
 ): Promise<string> => {
+  const newRef = `${ref}-${primaryLanguage}`;
   const requestParams = {
     owner,
     repo,
-    ref,
+    ref: newRef,
     sha,
   } as createRefParameters;
 
