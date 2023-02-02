@@ -102,13 +102,22 @@ export const worker = async (): Promise<unknown> => {
           repo,
           client
         );
-        const ref = await createBranch(
-          defaultBranchSHA,
-          owner,
-          repo,
-          primaryLanguage,
-          client
-        );
+        let ref: string = "";
+        try {
+          ref = await createBranch(
+            defaultBranchSHA,
+            owner,
+            repo,
+            primaryLanguage,
+            client
+          );
+        } catch {
+          inform(
+            `Branch, ghas-enablement-${primaryLanguage} already exists, skip to next item...`
+          );
+          continue;
+        }
+
         const authToken = (await generateAuth()) as string;
         await commitFileMac(owner, repo, primaryLanguage, ref, authToken);
         const pullRequestURL = await createPullRequest(
