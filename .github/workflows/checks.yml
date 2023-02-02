@@ -7,7 +7,7 @@ on:
 jobs:
   checks:
     name: Checks
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-20.04]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2

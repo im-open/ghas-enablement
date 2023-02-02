@@ -212,7 +212,7 @@ env:
 
 jobs:
   enable-security-javascript:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-20.04]
     steps:
       - uses: actions/checkout@v2
         with:
