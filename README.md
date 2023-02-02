@@ -29,7 +29,7 @@ Loops over the repositories found within the `repos.json` file and enables Code 
 
 If you pick Code Scanning:
 
-- Loops over the repositories found within the `repos.json` file. A pull request gets created on that repository with the `codeql-analysis-${language}.yml` found in the `bin/workflows` directory. The `${language}` will be replaced at runtime with the primary language of the repository. For convenience, all pull requests made will be stored within the `prs.txt` file, where you can see and manually review the pull requests after the script has run.
+- Loops over the repositories found within the `repos.json` file. A pull request gets created on that repository with the `code-analysis-${language}.yml` found in the `bin/workflows` directory. The `${language}` will be replaced at runtime with the primary language of the repository. For convenience, all pull requests made will be stored within the `prs.txt` file, where you can see and manually review the pull requests after the script has run.
 
 If you pick Secret Scanning:
 
@@ -90,7 +90,7 @@ If you pick Dependabot Security Updates:
 
 10. **OPTIONAL**: If you are a GHES customer, then you will need to set the `GHES` env to `true` and then set `GHES_SERVER_BASE_URL` to the URL of your GHES instance. E.G `https://octodemo.com`.
 
-11. If you are enabling Code Scanning (CodeQL), check the `codeql-analysis-${language}.yml` file. This is a sample file; please configure this file to suit your repositories needs.
+11. If you are enabling Code Scanning (CodeQL), check the `code-analysis-${language}.yml` file. This is a sample file; please configure this file to suit your repositories needs.
 
 12. Run `yarn install` or `npm install`, which will install the necessary dependencies.
 
@@ -110,7 +110,7 @@ The first step is collecting the repositories you would like to run this script 
 yarn run getRepos // In the `.env` set the `LANGUAGE_TO_CHECK=` to the language. E.G `python`, `javascript`, `go`, `hcl`, `powershell`, etc.
 ```
 
-When using GitHub Actions, we commonly find (especially for non-build languages such as JavaScript) that the `-${language}.yml` file is repeatable and consistent across multiple repositories of the same language. About 80% of the time, teams can reuse the same workflow files for the same language. For Java, C++ that number drops down to about 60% of the time. But the reason why we recommend enabling Code Scanning at bulk via language is the `codeql-analysis-${language}.yml` file you propose within the pull request has the highest chance of being most accurate. Even if the file needs changing, the team reviewing the pull request would likely only need to make small changes. We recommend you run this command first to get a list of repositories to enable Code Scanning. After running the command, you are welcome to modify this file. Just make sure it's a valid JSON file if you do edit.
+When using GitHub Actions, we commonly find (especially for non-build languages such as JavaScript) that the `-${language}.yml` file is repeatable and consistent across multiple repositories of the same language. About 80% of the time, teams can reuse the same workflow files for the same language. For Java, C++ that number drops down to about 60% of the time. But the reason why we recommend enabling Code Scanning at bulk via language is the `code-analysis-${language}.yml` file you propose within the pull request has the highest chance of being most accurate. Even if the file needs changing, the team reviewing the pull request would likely only need to make small changes. We recommend you run this command first to get a list of repositories to enable Code Scanning. After running the command, you are welcome to modify this file. Just make sure it's a valid JSON file if you do edit.
 
 This script only returns repositories where CodeQL results have not already been uploaded to code scanning. If any CodeQL results have been uploaded to a repositories code scanning feature, that repository will not be returned to this list. The motivation behind this is not to raise pull requests on repositories where CodeQL has already been enabled.
 

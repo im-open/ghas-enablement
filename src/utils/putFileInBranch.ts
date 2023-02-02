@@ -15,7 +15,7 @@ export const putFileInBranch = async (
   const regExpExecArray = /[^/]*$/.exec(refs);
   const branch = regExpExecArray ? regExpExecArray[0] : "";
 
-  const content = (await fs.readFile("./codeql-analysis.yml", {
+  const content = (await fs.readFile("./code-analysis.yml", {
     encoding: "base64",
   })) as unknown;
 

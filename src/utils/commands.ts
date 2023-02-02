@@ -54,7 +54,7 @@ export const generalCommands = (
         winSeparator(`./bin/workflows/${fileName}`, platform),
         winSeparator(
           `/${destDir}/${tempDIR}/${repo}/` +
-            `.github/workflows/codeql-analysis-${codeQLLanguage}.yml`,
+            `.github/workflows/code-analysis-${codeQLLanguage}.yml`,
           platform
         ),
       ],
@@ -65,7 +65,7 @@ export const generalCommands = (
       args: [
         ...(platform === "darwin" ? ["add"] : ["add"]),
         winSeparator(
-          `.github/workflows/codeql-analysis-${codeQLLanguage}.yml`,
+          `.github/workflows/code-analysis-${codeQLLanguage}.yml`,
           platform
         ),
       ],
