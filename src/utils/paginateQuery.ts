@@ -35,25 +35,24 @@ const performRepositoryQuery = async (
     })) as GraphQlQueryResponseData;
 
     let currentNodes = nodes as Array<GraphQLQueryResponseGetReposRaw>;
-    let newNodes = new Array<GraphQLQueryResponseGetRepos>();
+    let responseNodes = new Array<GraphQLQueryResponseGetRepos>();
 
-    currentNodes.forEach(node => {
-      node.languages.nodes.forEach(lang => {
-        const newNode: GraphQLQueryResponseGetRepos = {
-          nameWithOwner: node.nameWithOwner,
-          isArchived: node.isArchived,
-          viewerPermission: node.viewerPermission,
-          visibility: node.viewerPermission,
-          primaryLanguage: {
-            name: lang.name
-          }
-        };
-        newNodes.push(newNode)
-      });
+    currentNodes.forEach((node) => {
+      const responseNode: GraphQLQueryResponseGetRepos = {
+        nameWithOwner: node.nameWithOwner,
+        isArchived: node.isArchived,
+        viewerPermission: node.viewerPermission,
+        visibility: node.viewerPermission,
+        primaryLanguage: {
+          // We don't care about the language, as long as it matches one of them
+          // because the single workflow will support all of them
+          name: node.languages.nodes[0].name,
+        },
+      };
+      responseNodes.push(responseNode);
     });
 
-
-    return [hasNextPage, endCursor, newNodes];
+    return [hasNextPage, endCursor, responseNodes];
   } catch (err) {
     error(err);
     throw err;
@@ -89,14 +88,16 @@ const getRepositoryInOrganizationPaginate = async (
       inform(
         `Repo Name: ${nameWithOwner} Permission: ${viewerPermission} Archived: ${isArchived} Language: ${name} Visibility: ${visibility}`
       );
-      const languageCheck = (process.env.LANGUAGE_TO_CHECK || "")
-        ? name.toLocaleLowerCase() === `${process.env.LANGUAGE_TO_CHECK}`
-        : true;
-      let returnValue = (viewerPermission === "ADMIN" || viewerPermission === null) &&
+      const languageCheck =
+        process.env.LANGUAGE_TO_CHECK || ""
+          ? name.toLocaleLowerCase() === `${process.env.LANGUAGE_TO_CHECK}`
+          : true;
+      let returnValue =
+        (viewerPermission === "ADMIN" || viewerPermission === null) &&
         isArchived === false &&
         languageCheck
-        ? true
-        : false;
+          ? true
+          : false;
 
       return returnValue;
     });
