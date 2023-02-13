@@ -38,18 +38,20 @@ const performRepositoryQuery = async (
     let responseNodes = new Array<GraphQLQueryResponseGetRepos>();
 
     currentNodes.forEach((node) => {
-      const responseNode: GraphQLQueryResponseGetRepos = {
-        nameWithOwner: node.nameWithOwner,
-        isArchived: node.isArchived,
-        viewerPermission: node.viewerPermission,
-        visibility: node.viewerPermission,
-        primaryLanguage: {
-          // We don't care about the language, as long as it matches one of them
-          // because the single workflow will support all of them
-          name: node.languages.nodes[0].name,
-        },
-      };
-      responseNodes.push(responseNode);
+      if (node.languages.nodes != null && node.languages.nodes.length > 0) {
+        const responseNode: GraphQLQueryResponseGetRepos = {
+          nameWithOwner: node.nameWithOwner,
+          isArchived: node.isArchived,
+          viewerPermission: node.viewerPermission,
+          visibility: node.viewerPermission,
+          primaryLanguage: {
+            // We don't care about the language, as long as it matches one of them
+            // because the single workflow will support scanning all
+            name: node.languages.nodes[0].name,
+          },
+        };
+        responseNodes.push(responseNode);
+      }
     });
 
     return [hasNextPage, endCursor, responseNodes];

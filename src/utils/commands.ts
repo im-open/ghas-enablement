@@ -7,8 +7,7 @@ export const generalCommands = (
   repo: string,
   branch: string,
   fileName: string,
-  baseURL: string,
-  codeQLLanguage: string
+  baseURL: string
 ): commands => {
   const commands = [
     // Clean the workspace
