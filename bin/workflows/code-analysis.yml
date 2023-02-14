@@ -45,6 +45,9 @@ jobs:
           # (which for GitHub-hosted runners is 6GB for Linux, 5.5GB for Windows, and 13GB for macOS).
           # This input also sets the amount of memory that can later be used by the "analyze" action.
           ram: 1024
+          # Using additional queries to get more results
+          # See https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/customizing-code-scanning#using-queries-in-ql-packs
+          queries: security-and-quality
         # with:
         #   debug: true
         # Override language selection by uncommenting this and choosing your languages
@@ -63,9 +66,9 @@ jobs:
       #    three lines and modify them (or add more) to build your code if your
       #    project uses a compiled language
 
-      #- run: |
-      #     make bootstrap
-      #     make release
+      # - run: |
+      #   echo "Run, Build Application using script"
+      #   ./location_of_script_within_repo/buildscript.sh
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
