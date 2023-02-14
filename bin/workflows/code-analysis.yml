@@ -24,7 +24,7 @@ jobs:
     # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
     # runs-on: ubuntu-latest
     # runs-on: [self-hosted, ubuntu-20.04]
-    runs-on: [self-hosted, coldstone, ghas-code-scan]
+    runs-on: [self-hosted, coldstone, ghas-runner-linux]
 
     permissions:
       actions: read # only required for workflows in private repositories
@@ -76,7 +76,7 @@ jobs:
           category: /codeql-scan:${{ github.job }}
 
   LanguageCheck:
-    runs-on: [self-hosted, coldstone, ghas-code-scan]
+    runs-on: [self-hosted, coldstone, ghas-runner-linux]
 
     outputs:
       contains_tf: ${{ steps.filechecks.outputs.contains_tf }}
@@ -111,7 +111,7 @@ jobs:
     # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
     # runs-on: ubuntu-latest
     # runs-on: [self-hosted, ubuntu-20.04]
-    runs-on: [self-hosted, coldstone, ghas-code-scan]
+    runs-on: [self-hosted, coldstone, ghas-runner-linux]
     needs: LanguageCheck
     if: needs.LanguageCheck.outputs.contains_pwsh == 'true'
 
@@ -143,7 +143,7 @@ jobs:
     # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
     # runs-on: ubuntu-latest
     # runs-on: [self-hosted, ubuntu-20.04]
-    runs-on: [self-hosted, coldstone, ghas-code-scan]
+    runs-on: [self-hosted, coldstone, ghas-runner-linux]
     needs: LanguageCheck
     if: needs.LanguageCheck.outputs.contains_tf == 'true'
 
