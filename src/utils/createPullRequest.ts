@@ -12,13 +12,12 @@ export const createPullRequest = async (
   refs: string,
   owner: string,
   repo: string,
-  octokit: Octokit,
-  language: string
+  octokit: Octokit
 ): Promise<string> => {
   const regExpExecArray = /[^/]*$/.exec(refs);
   const head = regExpExecArray ? regExpExecArray[0] : "";
 
-  let newTitle = `${title} (${language})`;
+  let newTitle = `${title}`;
   const requestParams = {
     owner,
     repo,

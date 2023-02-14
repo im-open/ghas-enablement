@@ -104,16 +104,10 @@ export const worker = async (): Promise<unknown> => {
         );
         let ref: string = "";
         try {
-          ref = await createBranch(
-            defaultBranchSHA,
-            owner,
-            repo,
-            primaryLanguage,
-            client
-          );
+          ref = await createBranch(defaultBranchSHA, owner, repo, client);
         } catch {
           inform(
-            `Branch, ghas-enablement-${primaryLanguage} already exists, skip to next item...`
+            `Branch, ghas-enablement already exists, skip to next item...`
           );
           continue;
         }
@@ -125,17 +119,10 @@ export const worker = async (): Promise<unknown> => {
           ref,
           owner,
           repo,
-          client,
-          primaryLanguage
+          client
         );
         if (createIssue) {
-          await enableIssueCreation(
-            pullRequestURL,
-            owner,
-            repo,
-            client,
-            primaryLanguage
-          );
+          await enableIssueCreation(pullRequestURL, owner, repo, client);
         }
         await writeToFile(pullRequestURL);
         // }

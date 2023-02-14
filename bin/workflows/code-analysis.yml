@@ -20,6 +20,58 @@ on:
   workflow_dispatch:
 
 jobs:
+  CodeQL-Scan:
+    # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
+    # runs-on: ubuntu-latest
+    # runs-on: [self-hosted, ubuntu-20.04]
+    runs-on: [self-hosted, coldstone, ghas-code-scan]
+
+    permissions:
+      actions: read # only required for workflows in private repositories
+      contents: read # for actions/checkout fetch code
+      pull-requests: write # can write to pull requests
+      security-events: write # required for all workflows
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Initializes the CodeQL tools for scanning.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          # The amount of memory in MB that can be used by CodeQL extractors.
+          # By default, CodeQL extractors will use most of the memory available in the system
+          # (which for GitHub-hosted runners is 6GB for Linux, 5.5GB for Windows, and 13GB for macOS).
+          # This input also sets the amount of memory that can later be used by the "analyze" action.
+          ram: 1024
+        # with:
+        #   debug: true
+        # Override language selection by uncommenting this and choosing your languages
+        # with:
+        #   languages: go, javascript, csharp, python, cpp, java, ruby
+
+      # Autobuild attempts to build any compiled languages (C/C++, C#, Go, or Java).
+      # If this step fails, then you should remove it and run the build manually (see below).
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      # ℹ️ Command-line programs to run using the OS shell.
+      # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
+
+      # ✏️ If the Autobuild fails above, remove it and uncomment the following
+      #    three lines and modify them (or add more) to build your code if your
+      #    project uses a compiled language
+
+      #- run: |
+      #     make bootstrap
+      #     make release
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: /codeql-scan:${{ github.job }}
+
   PowerShell-Scan:
     # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
     # runs-on: ubuntu-latest
@@ -75,55 +127,3 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: tfsec.sarif
-
-  CodeQL-Scan:
-    # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
-    # runs-on: ubuntu-latest
-    # runs-on: [self-hosted, ubuntu-20.04]
-    runs-on: [self-hosted, coldstone, ghas-code-scan]
-
-    permissions:
-      actions: read # only required for workflows in private repositories
-      contents: read # for actions/checkout fetch code
-      pull-requests: write # can write to pull requests
-      security-events: write # required for all workflows
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      # Initializes the CodeQL tools for scanning.
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
-        with:
-          # The amount of memory in MB that can be used by CodeQL extractors.
-          # By default, CodeQL extractors will use most of the memory available in the system
-          # (which for GitHub-hosted runners is 6GB for Linux, 5.5GB for Windows, and 13GB for macOS).
-          # This input also sets the amount of memory that can later be used by the "analyze" action.
-          ram: 1024
-        # with:
-        #   debug: true
-        # Override language selection by uncommenting this and choosing your languages
-        # with:
-        #   languages: go, javascript, csharp, python, cpp, java, ruby
-
-      # Autobuild attempts to build any compiled languages (C/C++, C#, Go, or Java).
-      # If this step fails, then you should remove it and run the build manually (see below).
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v2
-
-      # ℹ️ Command-line programs to run using the OS shell.
-      # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
-
-      # ✏️ If the Autobuild fails above, remove it and uncomment the following
-      #    three lines and modify them (or add more) to build your code if your
-      #    project uses a compiled language
-
-      #- run: |
-      #     make bootstrap
-      #     make release
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
-        with:
-          category: /codeql-scan:${{ github.job }}
