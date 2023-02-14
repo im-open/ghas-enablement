@@ -75,11 +75,45 @@ jobs:
         with:
           category: /codeql-scan:${{ github.job }}
 
+  LanguageCheck:
+    runs-on: [self-hosted, coldstone, ghas-code-scan]
+
+    outputs:
+      contains_tf: ${{ steps.filechecks.outputs.contains_tf }}
+      contains_pwsh: ${{ steps.filechecks.outputs.contains_pwsh }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - id: filechecks
+        name: Check for Terraform and Powershell Files
+        shell: bash
+        # The set output is deprecated and will be disabled soon but the syntax they recommend gives ambiguous redirect error
+        # - echo "KEY=VALUE" >> $GITUB_OUTPUT
+        # https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/
+        # An example of a user getting this error due to an old runner being used
+        # https://github.com/community/community/discussions/36746#discussioncomment-4059832
+        run: |
+          case `find $GITHUB_WORKPACE -name '*.tf' -print -quit` in
+            '') echo 'No Terraform Files Found' ;;
+            *) echo "::set-output name=contains_tf::true" ;;
+          esac
+
+          case `find $GITHUB_WORKPACE -name '*.ps1' -print -quit` in
+            '') echo 'No PowerShell Files Found' ;;
+            *) echo "::set-output name=contains_pwsh::true" ;;
+          esac
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+
   PowerShell-Scan:
     # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
     # runs-on: ubuntu-latest
     # runs-on: [self-hosted, ubuntu-20.04]
     runs-on: [self-hosted, coldstone, ghas-code-scan]
+    needs: LanguageCheck
+    if: needs.LanguageCheck.outputs.contains_pwsh == 'true'
 
     permissions:
       actions: read # only required for workflows in private repositories
@@ -110,6 +144,8 @@ jobs:
     # runs-on: ubuntu-latest
     # runs-on: [self-hosted, ubuntu-20.04]
     runs-on: [self-hosted, coldstone, ghas-code-scan]
+    needs: LanguageCheck
+    if: needs.LanguageCheck.outputs.contains_tf == 'true'
 
     permissions:
       actions: read # only required for workflows in private repositories
