@@ -98,7 +98,7 @@ jobs:
 
           case `find $GITHUB_WORKPACE -name '*.tf' -print -quit` in
             '')
-              echo 'No Terraform Files Found!'
+              echo "No Terraform Files Found!""
               echo "contains_tf=false" >> $GITHUB_OUTPUT
               ;;
             *)
@@ -111,7 +111,7 @@ jobs:
 
           case `find $GITHUB_WORKPACE -name '*.ps1' -print -quit` in
             '')
-              echo 'No PowerShell Files Found!'
+              echo "No PowerShell Files Found!""
               echo "contains_pwsh=false" >> $GITHUB_OUTPUT
               ;;
             *)
