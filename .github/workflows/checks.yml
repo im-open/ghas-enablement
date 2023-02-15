@@ -9,7 +9,7 @@ on:
 jobs:
   checks:
     name: Checks
-    runs-on: im-ghas-linux
+    runs-on: ubunt-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
