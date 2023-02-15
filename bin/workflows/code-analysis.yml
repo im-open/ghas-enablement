@@ -26,7 +26,7 @@ jobs:
     # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
     # runs-on: ubuntu-latest
     # runs-on: [self-hosted, ubuntu-20.04]
-    runs-on: [self-hosted, coldstone, ghas-runner-linux]
+    runs-on: im-ghas-linux
 
     permissions:
       actions: read # only required for workflows in private repositories
@@ -80,7 +80,7 @@ jobs:
   FileChecks:
     # runs-on: ubuntu-latest
     # runs-on: [self-hosted, ubuntu-20.04]
-    runs-on: [self-hosted, coldstone, ghas-runner-linux]
+    runs-on: im-ghas-linux
 
     outputs:
       contains_tf: ${{ steps.filechecks.outputs.contains_tf }}
@@ -127,7 +127,7 @@ jobs:
     # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
     # runs-on: ubuntu-latest
     # runs-on: [self-hosted, ubuntu-20.04]
-    runs-on: [self-hosted, coldstone, ghas-runner-linux]
+    runs-on: im-ghas-linux
     needs: FileChecks
     if: needs.FileChecks.outputs.contains_pwsh == 'true'
 
@@ -159,7 +159,7 @@ jobs:
     # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
     # runs-on: ubuntu-latest
     # runs-on: [self-hosted, ubuntu-20.04]
-    runs-on: [self-hosted, coldstone, ghas-runner-linux]
+    runs-on: im-ghas-linux
     needs: FileChecks
     if: needs.FileChecks.outputs.contains_tf == 'true'
 
