@@ -37,11 +37,6 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
-          # The amount of memory in MB that can be used by CodeQL extractors.
-          # By default, CodeQL extractors will use most of the memory available in the system
-          # (which for GitHub-hosted runners is 6GB for Linux, 5.5GB for Windows, and 13GB for macOS).
-          # This input also sets the amount of memory that can later be used by the "analyze" action.
-          ram: 1024
           # Using additional queries to get more results
           # See https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/customizing-code-scanning#using-queries-in-ql-packs
           queries: security-and-quality
