@@ -6,6 +6,8 @@ on:
     branches: [main]
   schedule:
     - cron: "34 5 * * 3"
+  workflow_dispatch:
+
 jobs:
   analyze:
     name: Analyze
