@@ -50,6 +50,7 @@ export const generalCommands = (
     {
       command: platform === "win32" ? "copy" : "cp",
       args: [
+        platform === "win32" ? "" : "-n",
         winSeparator(`./bin/workflows/${fileName}`, platform),
         winSeparator(
           `/${destDir}/${tempDIR}/${repo}/` +
