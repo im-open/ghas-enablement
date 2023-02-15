@@ -7,7 +7,7 @@ on:
 jobs:
   checks:
     name: Checks
-    runs-on: [self-hosted, ubuntu-20.04]
+    runs-on: im-ghas-linux
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
