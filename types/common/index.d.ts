@@ -117,16 +117,16 @@ export type GraphQLQueryResponseGetReposRaw = {
   isArchived: boolean;
   viewerPermission: string;
   visibility: string;
-  languages: Languages
-}
+  languages: Languages;
+};
 
 export type Languages = {
   nodes: LanguagesNode[];
-}
+};
 
 export type LanguagesNode = {
   name: string;
-}
+};
 
 export type GraphQLQueryResponseGetRepos = {
   nameWithOwner: string;
