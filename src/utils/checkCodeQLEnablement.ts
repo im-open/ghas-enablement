@@ -1,4 +1,3 @@
-import { RequestError } from "@octokit/request-error";
 import {
   checkCodeScanningAnalysesParameters,
   checkCodeScanningAnalysesResponse,

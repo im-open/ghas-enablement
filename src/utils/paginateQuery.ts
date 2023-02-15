@@ -34,8 +34,8 @@ const performRepositoryQuery = async (
       after,
     })) as GraphQlQueryResponseData;
 
-    let currentNodes = nodes as Array<GraphQLQueryResponseGetReposRaw>;
-    let responseNodes = new Array<GraphQLQueryResponseGetRepos>();
+    const currentNodes = nodes as Array<GraphQLQueryResponseGetReposRaw>;
+    const responseNodes = new Array<GraphQLQueryResponseGetRepos>();
 
     currentNodes.forEach((node) => {
       if (node.languages.nodes != null && node.languages.nodes.length > 0) {
@@ -94,7 +94,7 @@ const getRepositoryInOrganizationPaginate = async (
         process.env.LANGUAGE_TO_CHECK || ""
           ? name.toLocaleLowerCase() === `${process.env.LANGUAGE_TO_CHECK}`
           : true;
-      let returnValue =
+      const returnValue =
         (viewerPermission === "ADMIN" || viewerPermission === null) &&
         isArchived === false &&
         languageCheck

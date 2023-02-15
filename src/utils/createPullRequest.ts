@@ -17,13 +17,12 @@ export const createPullRequest = async (
   const regExpExecArray = /[^/]*$/.exec(refs);
   const head = regExpExecArray ? regExpExecArray[0] : "";
 
-  let newTitle = `${title}`;
   const requestParams = {
     owner,
     repo,
     head,
     base,
-    title: newTitle,
+    title,
   } as createPullRequestParameters;
 
   try {
