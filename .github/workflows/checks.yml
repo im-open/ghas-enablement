@@ -9,7 +9,7 @@ on:
 jobs:
   checks:
     name: Checks
-    runs-on: ubunt-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
