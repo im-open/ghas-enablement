@@ -3,8 +3,6 @@
 import { readFileSync } from "node:fs";
 
 import { findDefaultBranch } from "./findDefaultBranch.js";
-import { findDefaultBranchSHA } from "./findDefaultBranchSHA.js";
-import { createBranch } from "./createBranch.js";
 import { enableSecretScanningAlerts } from "./enableSecretScanning";
 import { createPullRequest } from "./createPullRequest.js";
 import { writeToFile } from "./writeToFile.js";
@@ -114,25 +112,9 @@ export const worker = async (): Promise<unknown> => {
 
         if (continueWithCodeScanCreation) {
           const defaultBranch = await findDefaultBranch(owner, repo, client);
-          const defaultBranchSHA = await findDefaultBranchSHA(
-            defaultBranch,
-            owner,
-            repo,
-            client
-          );
-          let ref: string = "";
-          try {
-            ref = await createBranch(defaultBranchSHA, owner, repo, client);
-          } catch {
-            inform(
-              `Branch, ghas-enablement already exists, skip to next item...`
-            );
-            continue;
-          }
-
           const pullRequestURL = await createPullRequest(
             defaultBranch,
-            ref,
+            branchRef,
             owner,
             repo,
             client
