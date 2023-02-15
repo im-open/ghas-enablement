@@ -24,9 +24,9 @@ export const checkIfCodeQLHasAlreadyRanOnRepo = async (
     // If there are no analysis, the result is not a list and data.length will return undefined.
     if (data.length > 0) return true;
     return false;
-  } catch (e) {
-    if (e instanceof RequestError) {
-      if (e.status == 404) return false; // 404 result means no codeQL scans found
+  } catch (e: any) {
+    if (e.status == 404) {
+      return false; // 404 results mean no CodeQL Scans Found
     }
     return true;
   }
