@@ -23,7 +23,6 @@ on:
 
 jobs:
   CodeQL-Scan:
-    # possible values for runs-on: im-ghas-linux or [self-hosted, windows-2019]
     runs-on: RUNS_ON_PLACEHOLDER
 
     permissions:

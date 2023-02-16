@@ -27,8 +27,12 @@ if (platform !== "win32" && platform !== "darwin" && platform !== "linux") {
 
 const fileName = "code-analysis.yml";
 const fileNameDraft = "code-analysis-draft.yml";
-const windowsRunner = "[self-hosted, windows-2019]";
-const linuxRunner = "im-ghas-linux";
+const runnerWindows = "[self-hosted, windows-2019]";
+const runnerLinux = "im-ghas-linux";
+const osWindows = "windows";
+const osLinux = "linux";
+const placeholderRunsOn = "RUNS_ON_PLACEHOLDER";
+const placeholderOS = "OS_PLACEHOLDER";
 
 const doesCodeScanRequireWindowsRunner = (repoName: string): boolean => {
   const workflowPath = `${destDir}/${tempDIR}/${repoName}/.github/workflows/im-build-dotnet-ci.yml`;
@@ -51,13 +55,12 @@ const doesCodeScanRequireWindowsRunner = (repoName: string): boolean => {
 const setupCodeAnalysisYml = (requiresWindows: boolean): boolean => {
   const binWorkflows = "./bin/workflows";
   const draftPath = `${binWorkflows}/${fileNameDraft}`;
-  const placeholder = "RUNS_ON_PLACEHOLDER";
 
   const workflowDraft = fs.readFileSync(draftPath).toString("utf-8");
 
-  const runnerValue = requiresWindows ? windowsRunner : linuxRunner;
-  const workflowFinal = workflowDraft.replace(placeholder, runnerValue);
-
+  const workflowFinal = workflowDraft
+    .replace(placeholderRunsOn, requiresWindows ? runnerWindows : runnerLinux)
+    .replace(placeholderOS, requiresWindows ? osWindows : osLinux);
   try {
     const finalPath = `${binWorkflows}/${fileName}`;
     fs.writeFileSync(finalPath, workflowFinal);
