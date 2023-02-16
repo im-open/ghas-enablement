@@ -52,7 +52,7 @@ const containsImDotnetCi = (repoName: string): boolean => {
   return containsFile;
 };
 
-export const doesRepoRequireWindowsRunner = (repoName: string): boolean => {
+const doesRepoRequireWindowsRunner = (repoName: string): boolean => {
   const workflowPath = getWorkflowPath(repoName);
 
   const fileContents = fs.readFileSync(workflowPath).toString("utf-8");
@@ -68,11 +68,24 @@ export const doesRepoRequireWindowsRunner = (repoName: string): boolean => {
   return requiresWindows;
 };
 
-export const repoInspector = async (): Promise<unknown> => {
+const saveReposFileChanges = (repos: reposFile): boolean => {
+  const reposJson = JSON.stringify(repos, null, 2);
+  const reposFilePath = reposFileLocation;
+  const writeFile = util.promisify(fs.writeFile);
+  let savedChanges = false;
+  try {
+    writeFile(reposFilePath, reposJson);
+    savedChanges = true;
+  } catch (err) {
+    error(err);
+    savedChanges = false;
+  }
+  return savedChanges;
+};
+
+export const repoInspector = async (): Promise<boolean> => {
   let file: string;
   let repos: reposFile;
-  let response;
-
   const apiToken = (await authToken()) as string;
   const authBaseUrl = baseURL!.replace(
     "https://",
@@ -147,8 +160,10 @@ export const repoInspector = async (): Promise<unknown> => {
           doesRepoRequireWindowsRunner(repoName)
         ) {
           inform(`Repo, ${repoName}, requires a windows runner`);
+          repo.requiresWindowsForCodeScan = true;
         } else {
           inform(`Repo, ${repoName}, does not require a windows runner`);
+          repo.requiresWindowsForCodeScan = false;
         }
         // wait a half-second between git clones
         await delay(500);
@@ -159,5 +174,6 @@ export const repoInspector = async (): Promise<unknown> => {
       }
     }
   }
-  return response;
+  // Save repos file after we go through everything
+  return saveReposFileChanges(repos);
 };
