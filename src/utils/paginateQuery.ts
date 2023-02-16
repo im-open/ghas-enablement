@@ -34,26 +34,27 @@ const performRepositoryQuery = async (
       after,
     })) as GraphQlQueryResponseData;
 
-    let currentNodes = nodes as Array<GraphQLQueryResponseGetReposRaw>;
-    let newNodes = new Array<GraphQLQueryResponseGetRepos>();
+    const currentNodes = nodes as Array<GraphQLQueryResponseGetReposRaw>;
+    const responseNodes = new Array<GraphQLQueryResponseGetRepos>();
 
-    currentNodes.forEach(node => {
-      node.languages.nodes.forEach(lang => {
-        const newNode: GraphQLQueryResponseGetRepos = {
+    currentNodes.forEach((node) => {
+      if (node.languages.nodes != null && node.languages.nodes.length > 0) {
+        const responseNode: GraphQLQueryResponseGetRepos = {
           nameWithOwner: node.nameWithOwner,
           isArchived: node.isArchived,
           viewerPermission: node.viewerPermission,
           visibility: node.viewerPermission,
           primaryLanguage: {
-            name: lang.name
-          }
+            // We don't care about the language, as long as it matches one of them
+            // because the single workflow will support scanning all
+            name: node.languages.nodes[0].name,
+          },
         };
-        newNodes.push(newNode)
-      });
+        responseNodes.push(responseNode);
+      }
     });
 
-
-    return [hasNextPage, endCursor, newNodes];
+    return [hasNextPage, endCursor, responseNodes];
   } catch (err) {
     error(err);
     throw err;
@@ -89,14 +90,16 @@ const getRepositoryInOrganizationPaginate = async (
       inform(
         `Repo Name: ${nameWithOwner} Permission: ${viewerPermission} Archived: ${isArchived} Language: ${name} Visibility: ${visibility}`
       );
-      const languageCheck = (process.env.LANGUAGE_TO_CHECK || "")
-        ? name.toLocaleLowerCase() === `${process.env.LANGUAGE_TO_CHECK}`
-        : true;
-      let returnValue = (viewerPermission === "ADMIN" || viewerPermission === null) &&
+      const languageCheck =
+        process.env.LANGUAGE_TO_CHECK || ""
+          ? name.toLocaleLowerCase() === `${process.env.LANGUAGE_TO_CHECK}`
+          : true;
+      const returnValue =
+        (viewerPermission === "ADMIN" || viewerPermission === null) &&
         isArchived === false &&
         languageCheck
-        ? true
-        : false;
+          ? true
+          : false;
 
       return returnValue;
     });

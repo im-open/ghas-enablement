@@ -7,8 +7,7 @@ export const generalCommands = (
   repo: string,
   branch: string,
   fileName: string,
-  baseURL: string,
-  codeQLLanguage: string
+  baseURL: string
 ): commands => {
   const commands = [
     // Clean the workspace
@@ -51,10 +50,11 @@ export const generalCommands = (
     {
       command: platform === "win32" ? "copy" : "cp",
       args: [
+        platform === "win32" ? "" : "-n",
         winSeparator(`./bin/workflows/${fileName}`, platform),
         winSeparator(
           `/${destDir}/${tempDIR}/${repo}/` +
-            `.github/workflows/code-analysis-${codeQLLanguage}.yml`,
+            `.github/workflows/code-analysis.yml`,
           platform
         ),
       ],
@@ -64,10 +64,7 @@ export const generalCommands = (
       command: "git",
       args: [
         ...(platform === "darwin" ? ["add"] : ["add"]),
-        winSeparator(
-          `.github/workflows/code-analysis-${codeQLLanguage}.yml`,
-          platform
-        ),
+        winSeparator(`.github/workflows/code-analysis.yml`, platform),
       ],
       cwd: `/${destDir}/${tempDIR}/${repo}`,
     },

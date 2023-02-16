@@ -52,7 +52,7 @@ export const commitFileMac = async (
     return { status: 500, message: "no language on repo" };
   }
 
-  const fileName = `code-analysis-${codeQLLanguage}.yml`;
+  const fileName = `code-analysis.yml`;
 
   try {
     gitCommands = generalCommands(
@@ -60,8 +60,7 @@ export const commitFileMac = async (
       repo,
       branch,
       fileName,
-      authBaseURL,
-      codeQLLanguage
+      authBaseURL
     ) as commands;
     inform(gitCommands);
   } catch (err) {
@@ -70,22 +69,19 @@ export const commitFileMac = async (
   }
 
   for (index = 0; index < gitCommands.length; index++) {
+    const gitCommand = gitCommands[index];
     inform(
-      [
-        "Executing: ",
-        gitCommands[index].command,
-        gitCommands[index].args,
-        "in",
-        gitCommands[index].cwd,
-      ].join(" ")
+      `Executing ${gitCommand.command} ${gitCommand.args.join(" ")} in ${
+        gitCommand.cwd
+      }`
     );
     // Adding try/catch so we can whitelist
     try {
       const { stdout, stderr } = await execFile(
-        gitCommands[index].command,
-        gitCommands[index].args,
+        gitCommand.command,
+        gitCommand.args,
         {
-          cwd: gitCommands[index].cwd,
+          cwd: gitCommand.cwd,
           shell: true,
         }
       );

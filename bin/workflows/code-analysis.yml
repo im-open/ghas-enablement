@@ -1,0 +1,188 @@
+name: "Run Code Scans"
+# https://github.com/github/codeql-action
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  repository_dispatch:
+    types: [code-scan]
+  workflow_dispatch:
+  schedule:
+    #        ┌───────────── minute (0 - 59)
+    #        │  ┌───────────── hour (0 - 23)
+    #        │  │ ┌───────────── day of the month (1 - 31)
+    #        │  │ │ ┌───────────── month (1 - 12 or JAN-DEC)
+    #        │  │ │ │ ┌───────────── day of the week (0 - 6 or SUN-SAT)
+    #        │  │ │ │ │
+    #        │  │ │ │ │
+    #        │  │ │ │ │
+    #        *  * * * *
+    - cron: "30 1 * * 0"
+
+jobs:
+  CodeQL-Scan:
+    # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
+    # runs-on: ubuntu-latest
+    # runs-on: [self-hosted, ubuntu-20.04]
+    runs-on: im-ghas-linux
+
+    permissions:
+      actions: read # only required for workflows in private repositories
+      contents: read # for actions/checkout fetch code
+      pull-requests: write # can write to pull requests
+      security-events: write # required for all workflows
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Initializes the CodeQL tools for scanning.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          # The amount of memory in MB that can be used by CodeQL extractors.
+          # By default, CodeQL extractors will use most of the memory available in the system
+          # (which for GitHub-hosted runners is 6GB for Linux, 5.5GB for Windows, and 13GB for macOS).
+          # This input also sets the amount of memory that can later be used by the "analyze" action.
+          ram: 1024
+          # Using additional queries to get more results
+          # See https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/customizing-code-scanning#using-queries-in-ql-packs
+          queries: security-and-quality
+        # with:
+        #   debug: true
+        # Override language selection by uncommenting this and choosing your languages
+        # with:
+        #   languages: go, javascript, csharp, python, cpp, java, ruby
+
+      # Autobuild attempts to build any compiled languages (C/C++, C#, Go, or Java).
+      # If this step fails, then you should remove it and run the build manually (see below).
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      # ℹ️ Command-line programs to run using the OS shell.
+      # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
+
+      # ✏️ If the Autobuild fails above, remove it and uncomment the following
+      #    three lines and modify them (or add more) to build your code if your
+      #    project uses a compiled language
+
+      # - run: |
+      #   echo "Run, Build Application using script"
+      #   ./location_of_script_within_repo/buildscript.sh
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: /codeql-scan:${{ github.job }}
+
+  FileChecks:
+    # runs-on: ubuntu-latest
+    # runs-on: [self-hosted, ubuntu-20.04]
+    runs-on: im-ghas-linux
+
+    outputs:
+      contains_tf: ${{ steps.tfcheck.outputs.contains_tf }}
+      contains_pwsh: ${{ steps.pwshcheck.outputs.contains_pwsh }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - id: tfcheck
+        name: Check for Terraform Files
+        shell: bash
+        run: |
+          echo "Check for Terraform Files in workspace..."
+          case `find $GITHUB_WORKPACE -name '*.tf' -print -quit` in
+            '')
+              echo "No Terraform Files Found!"
+              echo "contains_tf=false" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "Found Terraform Files!"
+              echo "contains_tf=true" >> $GITHUB_OUTPUT
+              ;;
+          esac
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+
+      - id: pwshcheck
+        name: Check for PowerShell Files
+        shell: bash
+        run: |
+          echo "Check for PowerShell Files in workspace..."
+          case `find $GITHUB_WORKPACE -name '*.ps1' -print -quit` in
+            '')
+              echo "No PowerShell Files Found!"
+              echo "contains_pwsh=false" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "Found PowerShell Files!"
+              echo "contains_pwsh=true" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+
+  PowerShell-Scan:
+    # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
+    # runs-on: ubuntu-latest
+    # runs-on: [self-hosted, ubuntu-20.04]
+    runs-on: im-ghas-linux
+    needs: FileChecks
+    if: needs.FileChecks.outputs.contains_pwsh == 'true'
+
+    permissions:
+      actions: read # only required for workflows in private repositories
+      contents: read # for actions/checkout fetch code
+      pull-requests: write # can write to pull requests
+      security-events: write # required for all workflows
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Perform PowerShell Scan
+        uses: microsoft/psscriptanalyzer-action@v1.1
+        with:
+          # Check https://github.com/microsoft/psscriptanalyzer-action for more info about the options.
+          # The below set up runs PSScriptAnalyzer to your entire repository and runs some basic security rules.
+          path: .\
+          recurse: true
+          output: powershellresults.sarif
+
+      - name: Upload PowerShell SARIF results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: powershellresults.sarif
+
+  Terraform-Scan:
+    # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
+    # runs-on: ubuntu-latest
+    # runs-on: [self-hosted, ubuntu-20.04]
+    runs-on: im-ghas-linux
+    needs: FileChecks
+    if: needs.FileChecks.outputs.contains_tf == 'true'
+
+    permissions:
+      actions: read # only required for workflows in private repositories
+      contents: read # for actions/checkout fetch code
+      pull-requests: write # can write to pull requests
+      security-events: write # required for all workflows
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Perform Terraform Scan
+        uses: aquasecurity/tfsec-sarif-action@v0.1.4
+        with:
+          sarif_file: tfsec.sarif
+
+      - name: Upload Terraform SARIF results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: tfsec.sarif

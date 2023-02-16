@@ -3,8 +3,6 @@
 import { readFileSync } from "node:fs";
 
 import { findDefaultBranch } from "./findDefaultBranch.js";
-import { findDefaultBranchSHA } from "./findDefaultBranchSHA.js";
-import { createBranch } from "./createBranch.js";
 import { enableSecretScanningAlerts } from "./enableSecretScanning";
 import { createPullRequest } from "./createPullRequest.js";
 import { writeToFile } from "./writeToFile.js";
@@ -17,7 +15,7 @@ import { enableIssueCreation } from "./enableIssueCreation";
 import { auth as generateAuth } from "./clients";
 
 import { Octokit } from "@octokit/core";
-import { inform, reposFileLocation } from "./globals.js";
+import { ref as branchRef, inform, reposFileLocation } from "./globals.js";
 import { reposFile } from "../../types/common/index.js";
 
 export const worker = async (): Promise<unknown> => {
@@ -95,50 +93,38 @@ export const worker = async (): Promise<unknown> => {
 
       // Kick off the process for enabling Code Scanning only if it is set to be enabled AND the primary language for the repo exists. If it doesn't exist that means CodeQL doesn't support it.
       if (enableCodeScanning && primaryLanguage != "no-language") {
-        const defaultBranch = await findDefaultBranch(owner, repo, client);
-        const defaultBranchSHA = await findDefaultBranchSHA(
-          defaultBranch,
-          owner,
-          repo,
-          client
-        );
-        let ref: string = "";
+        const authToken = (await generateAuth()) as string;
+        let continueWithCodeScanCreation = true;
         try {
-          ref = await createBranch(
-            defaultBranchSHA,
+          await commitFileMac(
             owner,
             repo,
             primaryLanguage,
-            client
+            branchRef,
+            authToken
           );
         } catch {
           inform(
-            `Branch, ghas-enablement-${primaryLanguage} already exists, skip to next item...`
+            `File, code-analysis.yml, already exists. Nothing needed to commit.`
           );
-          continue;
+          continueWithCodeScanCreation = false;
         }
 
-        const authToken = (await generateAuth()) as string;
-        await commitFileMac(owner, repo, primaryLanguage, ref, authToken);
-        const pullRequestURL = await createPullRequest(
-          defaultBranch,
-          ref,
-          owner,
-          repo,
-          client,
-          primaryLanguage
-        );
-        if (createIssue) {
-          await enableIssueCreation(
-            pullRequestURL,
+        if (continueWithCodeScanCreation) {
+          const defaultBranch = await findDefaultBranch(owner, repo, client);
+          const pullRequestURL = await createPullRequest(
+            defaultBranch,
+            branchRef,
             owner,
             repo,
-            client,
-            primaryLanguage
+            client
           );
+          if (createIssue) {
+            await enableIssueCreation(pullRequestURL, owner, repo, client);
+          }
+          await writeToFile(pullRequestURL);
+          // }
         }
-        await writeToFile(pullRequestURL);
-        // }
       }
     }
   }

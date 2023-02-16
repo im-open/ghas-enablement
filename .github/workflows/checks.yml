@@ -4,10 +4,12 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
 jobs:
   checks:
     name: Checks
-    runs-on: [self-hosted, ubuntu-20.04]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -15,6 +17,6 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: "18"
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --immutable-cache
       - run: yarn run lint:check
       - run: yarn run prettier:check
