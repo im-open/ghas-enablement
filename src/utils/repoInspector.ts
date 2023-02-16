@@ -22,8 +22,8 @@ const getCommandsForClone = (
   repoName: string
 ): gitCommands[] => {
   // We only want the first few commands that remove previous checkout, create tempdir, and clone the repo
-  let commandsForClone = [] as gitCommands[];
-  for (var index = 0; index < commands.length; index++) {
+  const commandsForClone = [];
+  for (let index = 0; index < commands.length; index++) {
     const command = commands[index];
     if (
       command.command.includes("rm") &&
@@ -58,7 +58,7 @@ export const doesRepoRequireWindowsRunner = (repoName: string): boolean => {
   const fileContents = fs.readFileSync(workflowPath).toString("utf-8");
   const fileLines = fileContents.split("\n");
   let requiresWindows = false;
-  for (var index = 0; index < fileLines.length; index++) {
+  for (let index = 0; index < fileLines.length; index++) {
     const line = fileLines[index];
     if (line.includes("runs-on:") && line.includes("windows-")) {
       requiresWindows = true;
@@ -120,7 +120,7 @@ export const repoInspector = async (): Promise<unknown> => {
       );
       const commandsForClone = getCommandsForClone(gitCommands, repoName);
       try {
-        for (var cmdIndex = 0; cmdIndex < commandsForClone.length; cmdIndex++) {
+        for (let cmdIndex = 0; cmdIndex < commandsForClone.length; cmdIndex++) {
           const commandForClone = commandsForClone[cmdIndex];
 
           inform(
