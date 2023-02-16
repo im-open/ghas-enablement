@@ -83,22 +83,21 @@ jobs:
     runs-on: im-ghas-linux
 
     outputs:
-      contains_tf: ${{ steps.filechecks.outputs.contains_tf }}
-      contains_pwsh: ${{ steps.filechecks.outputs.contains_pwsh }}
+      contains_tf: ${{ steps.tfcheck.outputs.contains_tf }}
+      contains_pwsh: ${{ steps.pwshcheck.outputs.contains_pwsh }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - id: filechecks
-        name: Check for Terraform and Powershell Files
+      - id: tfcheck
+        name: Check for Terraform Files
         shell: bash
         run: |
           echo "Check for Terraform Files in workspace..."
-
           case `find $GITHUB_WORKPACE -name '*.tf' -print -quit` in
             '')
-              echo "No Terraform Files Found!""
+              echo "No Terraform Files Found!"
               echo "contains_tf=false" >> $GITHUB_OUTPUT
               ;;
             *)
@@ -106,12 +105,17 @@ jobs:
               echo "contains_tf=true" >> $GITHUB_OUTPUT
               ;;
           esac
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
 
+      - id: pwshcheck
+        name: Check for PowerShell Files
+        shell: bash
+        run: |
           echo "Check for PowerShell Files in workspace..."
-
           case `find $GITHUB_WORKPACE -name '*.ps1' -print -quit` in
             '')
-              echo "No PowerShell Files Found!""
+              echo "No PowerShell Files Found!"
               echo "contains_pwsh=false" >> $GITHUB_OUTPUT
               ;;
             *)
