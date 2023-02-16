@@ -1,3 +1,4 @@
+bin/workflows/code-analysis.yml
 working-dir
 repo-results
 launch.json
