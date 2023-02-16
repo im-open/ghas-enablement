@@ -27,7 +27,7 @@ if (platform !== "win32" && platform !== "darwin" && platform !== "linux") {
 
 const fileName = "code-analysis.yml";
 const fileNameDraft = "code-analysis-draft.yml";
-const runnerWindows = "[self-hosted, windows-2019]";
+const runnerWindows = "datacenter-2019-dev";
 const runnerLinux = "im-ghas-linux";
 const osWindows = "windows";
 const osLinux = "linux";
