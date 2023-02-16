@@ -1,9 +1,10 @@
 /* eslint-disable no-alert, no-await-in-loop */
 
-import util from "util";
 import delay from "delay";
+import fs from "fs";
+import util from "util";
 
-import { inform, error, platform, baseURL } from "./globals";
+import { inform, error, platform, baseURL, destDir, tempDIR } from "./globals";
 
 import { generalCommands } from "./commands";
 
@@ -23,6 +24,48 @@ if (platform !== "win32" && platform !== "darwin" && platform !== "linux") {
     wider support`
   );
 }
+
+const fileName = "code-analysis.yml";
+const fileNameDraft = "code-analysis-draft.yml";
+const windowsRunner = "[self-hosted, windows-2019]";
+const linuxRunner = "im-ghas-linux";
+
+const doesCodeScanRequireWindowsRunner = (repoName: string): boolean => {
+  const workflowPath = `${destDir}/${tempDIR}/${repoName}/.github/workflows/im-build-dotnet-ci.yml`;
+  let requiresWindows = false;
+
+  if (fs.existsSync(workflowPath)) {
+    const fileContents = fs.readFileSync(workflowPath).toString("utf-8");
+    const fileLines = fileContents.split("\n");
+    for (let index = 0; index < fileLines.length; index++) {
+      const line = fileLines[index];
+      if (line.includes("runs-on:") && line.includes("windows-")) {
+        requiresWindows = true;
+        break;
+      }
+    }
+  }
+  return requiresWindows;
+};
+
+const setupCodeAnalysisYml = (requiresWindows: boolean): boolean => {
+  const binWorkflows = "./bin/workflows";
+  const draftPath = `${binWorkflows}/${fileNameDraft}`;
+  const placeholder = "RUNS_ON_PLACEHOLDER";
+
+  const workflowDraft = fs.readFileSync(draftPath).toString("utf-8");
+
+  const runnerValue = requiresWindows ? windowsRunner : linuxRunner;
+  const workflowFinal = workflowDraft.replace(placeholder, runnerValue);
+
+  try {
+    const finalPath = `${binWorkflows}/${fileName}`;
+    fs.writeFileSync(finalPath, workflowFinal);
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 export const commitFileMac = async (
   owner: string,
@@ -51,8 +94,6 @@ export const commitFileMac = async (
   if (!codeQLLanguage) {
     return { status: 500, message: "no language on repo" };
   }
-
-  const fileName = `code-analysis.yml`;
 
   try {
     gitCommands = generalCommands(
@@ -95,6 +136,12 @@ export const commitFileMac = async (
       if (!whiteListed(err.message)) {
         throw err;
       }
+    }
+    if (gitCommand.args.includes("clone")) {
+      // after cloning repo check if we will need a windows runner for code scan
+      const requiresWindows = doesCodeScanRequireWindowsRunner(repo);
+      // write code-analysis.yml with appropriate code scan runner type
+      setupCodeAnalysisYml(requiresWindows);
     }
   }
   return { status: 200, message: "success" };

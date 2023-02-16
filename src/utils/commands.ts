@@ -35,6 +35,11 @@ export const generalCommands = (
       cwd: `/${destDir}/${tempDIR}`,
     },
     {
+      command: "langinspect",
+      args: [""],
+      cwd: `/${destDir}/${tempDIR}/${repo}`,
+    },
+    {
       command: "git",
       args: ["checkout", "-b", `${branch}`],
       cwd: `/${destDir}/${tempDIR}/${repo}`,

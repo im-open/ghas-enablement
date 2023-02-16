@@ -24,7 +24,7 @@ on:
 jobs:
   CodeQL-Scan:
     # possible values for runs-on: im-ghas-linux or [self-hosted, windows-2019]
-    runs-on: "RUNS_ON_PLACEHOLDER"
+    runs-on: [self-hosted, windows-2019]
 
     permissions:
       actions: read # only required for workflows in private repositories
