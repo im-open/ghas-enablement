@@ -154,6 +154,16 @@ As you can see, the object takes a number of boolean keys: `createIssue`, `enabl
 
 ### Step Two
 
+Run the script that will check which runner is needed for building dotnet code (Windows or Linux). This can be accomplished by running:
+
+```bash
+yarn run getRepoRunnerTypes // or npm run getRunnerRunnerTypes
+```
+
+This will loop through the `repos.json` script and inspect each repo for a dotnet build ci workflow and see if it uses a windows runner to compile the project.
+
+### Step Three
+
 Run the script which enables Code Scanning (and/or Dependabot Alerts/Dependabot Security Updates/Secret Scanning) on your repository by running:
 
 ```bash
