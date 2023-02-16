@@ -13,7 +13,6 @@ import { repoInspector } from "./utils/repoInspector";
 // update repos.json with the runner type required for code scan
 // which will be either Windows or Linux
 // An example of a repo using windows is
-// https://github.com/im-enrollment/dispatchers-service/blob/main/.github/workflows/im-build-dotnet-ci.yml
 
 async function start() {
   try {
