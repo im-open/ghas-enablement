@@ -23,6 +23,9 @@ on:
 
 jobs:
   CodeQL-Scan:
+    env:
+      os: OS_PLACEHOLDER
+
     runs-on: RUNS_ON_PLACEHOLDER
 
     permissions:
@@ -32,6 +35,12 @@ jobs:
       security-events: write # required for all workflows
 
     steps:
+      # temp step until we have an official windows runner with python on it
+      - name: Install python
+        if: env.os == 'windows'
+        shell: pwsh
+        run: choco install python
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
