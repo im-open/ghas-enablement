@@ -9,7 +9,6 @@ export type reposFile = {
     createIssue: boolean;
     primaryLanguage: string;
     repo: string;
-    requiresWindowsForCodeScan: boolean;
   }[];
 }[];
 
