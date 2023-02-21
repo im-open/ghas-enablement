@@ -27,7 +27,7 @@ env:
 
 jobs:
   CodeQL-CSharp-Windows:
-    if: env.os == 'windows' && env.has_csharp == 'true'
+    if: ${{ env.os == 'windows' && env.has_csharp == 'true' }}
     runs-on: [self-hosted, windows-2019]
 
     permissions:
@@ -72,7 +72,7 @@ jobs:
           category: /codeql-csharp-win-scan:${{ github.job }}
 
   CodeQL-CSharp-Linux:
-    if: env.os == 'linux' && env.has_csharp == 'true'
+    if: ${{ env.os == 'linux' && env.has_csharp == 'true' }}
     runs-on: im-ghas-runner
 
     permissions:
