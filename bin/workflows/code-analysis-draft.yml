@@ -22,8 +22,76 @@ on:
     - cron: "30 1 * * 0"
 
 jobs:
+  FileChecks:
+    runs-on: im-ghas-linux
+
+    outputs:
+      contains_tf: ${{ steps.tfcheck.outputs.contains_tf }}
+      contains_pwsh: ${{ steps.pwshcheck.outputs.contains_pwsh }}
+      contains_cs: ${{ steps.cscheck.outputs.contains_cs }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - id: tfcheck
+        name: Check for Terraform Files
+        shell: bash
+        run: |
+          echo "Check for Terraform Files in workspace..."
+          case `find $GITHUB_WORKPACE -name '*.tf' -print -quit` in
+            '')
+              echo "No Terraform Files Found!"
+              echo "contains_tf=false" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "Found Terraform Files!"
+              echo "contains_tf=true" >> $GITHUB_OUTPUT
+              ;;
+          esac
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+
+      - id: pwshcheck
+        name: Check for PowerShell Files
+        shell: bash
+        run: |
+          echo "Check for PowerShell Files in workspace..."
+          case `find $GITHUB_WORKPACE -name '*.ps1' -print -quit` in
+            '')
+              echo "No PowerShell Files Found!"
+              echo "contains_pwsh=false" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "Found PowerShell Files!"
+              echo "contains_pwsh=true" >> $GITHUB_OUTPUT
+              ;;
+          esac
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+
+      - id: cscheck
+        name: Check for C# Files
+        shell: bash
+        run: |
+          echo "Check for C# Files in workspace..."
+          case `find $GITHUB_WORKPACE -name '*.cs' -print -quit` in
+            '')
+              echo "No C# Files Found!"
+              echo "contains_cs=false" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "Found C# Files!"
+              echo "contains_cs=true" >> $GITHUB_OUTPUT
+              ;;
+          esac
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+
   CodeQL-Scan-CSharp:
     runs-on: RUNS_ON_PLACEHOLDER
+    needs: FileChecks
+    if: needs.FileChecks.outputs.contains_cs == 'true'
 
     permissions:
       actions: read # only required for workflows in private repositories
@@ -113,54 +181,6 @@ jobs:
         uses: github/codeql-action/analyze@v2
         with:
           category: /codeql-scan:${{ matrix.languages }}
-
-  FileChecks:
-    runs-on: im-ghas-linux
-
-    outputs:
-      contains_tf: ${{ steps.tfcheck.outputs.contains_tf }}
-      contains_pwsh: ${{ steps.pwshcheck.outputs.contains_pwsh }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - id: tfcheck
-        name: Check for Terraform Files
-        shell: bash
-        run: |
-          echo "Check for Terraform Files in workspace..."
-          case `find $GITHUB_WORKPACE -name '*.tf' -print -quit` in
-            '')
-              echo "No Terraform Files Found!"
-              echo "contains_tf=false" >> $GITHUB_OUTPUT
-              ;;
-            *)
-              echo "Found Terraform Files!"
-              echo "contains_tf=true" >> $GITHUB_OUTPUT
-              ;;
-          esac
-        env:
-          GITHUB_WORKSPACE: ${{ github.workspace }}
-
-      - id: pwshcheck
-        name: Check for PowerShell Files
-        shell: bash
-        run: |
-          echo "Check for PowerShell Files in workspace..."
-          case `find $GITHUB_WORKPACE -name '*.ps1' -print -quit` in
-            '')
-              echo "No PowerShell Files Found!"
-              echo "contains_pwsh=false" >> $GITHUB_OUTPUT
-              ;;
-            *)
-              echo "Found PowerShell Files!"
-              echo "contains_pwsh=true" >> $GITHUB_OUTPUT
-              ;;
-          esac
-
-        env:
-          GITHUB_WORKSPACE: ${{ github.workspace }}
 
   PowerShell-Scan:
     runs-on: im-ghas-linux
