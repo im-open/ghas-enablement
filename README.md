@@ -152,7 +152,7 @@ As you can see, the object takes a number of boolean keys: `createIssue`, `enabl
 
 **NOTE:** The account that generated the PAT needs to have `write` access or higher over any repository that you include within the `repos` key.
 
-### Step Three
+### Step Two
 
 Run the script which enables Code Scanning (and/or Dependabot Alerts/Dependabot Security Updates/Secret Scanning) on your repository by running:
 
