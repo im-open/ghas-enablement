@@ -62,6 +62,13 @@ const doesCodeScanRequireWindowsRunner = (repoName: string): boolean => {
   return requiresWindows;
 };
 
+const addWorkflowJob = (template: string, workflowParts: Array<string>) => {
+  // job templates start with jobs: on the first line so they don't
+  // lose their tab spacing as they are stored. Remove this and add to array
+  const templateWithoutJobs = template.replace("jobs:", "");
+  workflowParts.push(templateWithoutJobs);
+};
+
 const createWorkflowFile = (
   primaryLanguage: string,
   requiresWindows: boolean
@@ -79,13 +86,13 @@ const createWorkflowFile = (
         placeholderRunsOn,
         requiresWindows ? runs_on_windows : runs_on_linux
       );
-      workflowParts.push(templateCsWithReplacements);
+      addWorkflowJob(templateCsWithReplacements, workflowParts);
     } else if (languageTrim == "hcl") {
       // Create terraform scan job
-      workflowParts.push(templateTf);
+      addWorkflowJob(templateTf, workflowParts);
     } else if (languageTrim == "powershell") {
       // Create PowerShell scan job
-      workflowParts.push(templatePwsh);
+      addWorkflowJob(templatePwsh, workflowParts);
     } else if (
       ["go", "javascript", "python", "cpp", "java", "ruby"].includes(
         languageTrim
@@ -103,7 +110,7 @@ const createWorkflowFile = (
       placeholderMatrixLangs,
       matrixLangs
     );
-    workflowParts.push(templateOtherWithReplacements);
+    addWorkflowJob(templateOtherWithReplacements, workflowParts);
   }
 
   // join list as a string separating list items by new line
