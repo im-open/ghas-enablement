@@ -146,7 +146,7 @@ export const commitFileMac = async (
     env: { LANGUAGE_TO_CHECK: language },
   } = process;
   let codeQLLanguage = language;
-  if (!codeQLLanguage && !primaryLanguage.includes("no-language")) {
+  if (!codeQLLanguage) {
     codeQLLanguage = primaryLanguage;
   }
   if (!codeQLLanguage) {

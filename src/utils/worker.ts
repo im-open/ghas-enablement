@@ -92,7 +92,7 @@ export const worker = async (): Promise<unknown> => {
         : null;
 
       // Kick off the process for enabling Code Scanning only if it is set to be enabled AND the primary language for the repo exists. If it doesn't exist that means CodeQL doesn't support it.
-      if (enableCodeScanning && primaryLanguage != "no-language") {
+      if (enableCodeScanning) {
         const authToken = (await generateAuth()) as string;
         let continueWithCodeScanCreation = true;
         try {
