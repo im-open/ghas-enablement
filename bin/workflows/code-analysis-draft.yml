@@ -22,7 +22,7 @@ on:
     - cron: "30 1 * * 0"
 
 jobs:
-  CodeQL-CSharp:
+  CodeQL-Scan-CSharp:
     runs-on: RUNS_ON_PLACEHOLDER
 
     permissions:
@@ -69,7 +69,7 @@ jobs:
   CodeQL-Scan:
     strategy:
       matrix:
-        languages: [go, javascript, python, cpp, java, ruby]
+        languages: [MATRIX_LANGS_PLACEHOLDER] # [go, javascript, python, cpp, java, ruby]
 
     runs-on: im-ghas-linux
 

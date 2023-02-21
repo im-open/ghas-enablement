@@ -28,6 +28,7 @@ if (platform !== "win32" && platform !== "darwin" && platform !== "linux") {
 const fileName = "code-analysis.yml";
 const fileNameDraft = "code-analysis-draft.yml";
 const placeholderRunsOn = "RUNS_ON_PLACEHOLDER";
+const placeholderMatrixLangs = "MATRIX_LANGS_PLACEHOLDER";
 const runs_on_windows = "[self-hosted, windows-2019]";
 const runs_on_linux = "im-ghas-linux";
 
@@ -49,16 +50,45 @@ const doesCodeScanRequireWindowsRunner = (repoName: string): boolean => {
   return requiresWindows;
 };
 
-const setupCodeAnalysisYml = (requiresWindows: boolean): boolean => {
+const getCodeQlSupportedLanguages = (primaryLanguage: string): string => {
+  const supportedLanguages: Array<string> = [];
+  const codeql_languages = [
+    "go",
+    "javascript",
+    "python",
+    "cpp",
+    "java",
+    "ruby",
+  ];
+  const primaryLanguageList = primaryLanguage.split(",");
+  primaryLanguageList.forEach((language) => {
+    const languageTrimmed = language.trim();
+    if (codeql_languages.includes(languageTrimmed)) {
+      supportedLanguages.push(languageTrimmed);
+    }
+  });
+  if (supportedLanguages.length > 0) {
+    return supportedLanguages.join(", ");
+  }
+  return "";
+};
+
+const setupCodeAnalysisYml = (
+  requiresWindows: boolean,
+  primaryLanguage: string
+): boolean => {
   const binWorkflows = "./bin/workflows";
   const draftPath = `${binWorkflows}/${fileNameDraft}`;
 
   const workflowDraft = fs.readFileSync(draftPath).toString("utf-8");
 
-  const workflowFinal = workflowDraft.replace(
-    placeholderRunsOn,
-    requiresWindows ? runs_on_windows : runs_on_linux
-  );
+  const codeQlLanguages = getCodeQlSupportedLanguages(primaryLanguage);
+  const workflowFinal = workflowDraft
+    .replace(
+      placeholderRunsOn,
+      requiresWindows ? runs_on_windows : runs_on_linux
+    )
+    .replace(placeholderMatrixLangs, codeQlLanguages);
   try {
     const finalPath = `${binWorkflows}/${fileName}`;
     fs.writeFileSync(finalPath, workflowFinal);
@@ -89,7 +119,7 @@ export const commitFileMac = async (
     env: { LANGUAGE_TO_CHECK: language },
   } = process;
   let codeQLLanguage = language;
-  if (!codeQLLanguage && primaryLanguage != "no-language") {
+  if (!codeQLLanguage && !primaryLanguage.includes("no-language")) {
     codeQLLanguage = primaryLanguage;
   }
   if (!codeQLLanguage) {
@@ -142,7 +172,7 @@ export const commitFileMac = async (
       // after cloning repo check if we will need a windows runner for code scan
       const requiresWindows = doesCodeScanRequireWindowsRunner(repo);
       // write code-analysis.yml with appropriate code scan runner type
-      setupCodeAnalysisYml(requiresWindows);
+      setupCodeAnalysisYml(requiresWindows, primaryLanguage);
     }
   }
   return { status: 200, message: "success" };
