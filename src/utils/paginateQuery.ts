@@ -56,6 +56,7 @@ const performRepositoryQuery = async (
             repoLanguages.push(nodeName);
           }
         });
+        repoLanguages.sort();
         responseNode.primaryLanguage.name = repoLanguages.join(", ");
         responseNodes.push(responseNode);
       }
