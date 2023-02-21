@@ -64,9 +64,9 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
         with:
-          category: /codeql-csharp-scan:${{ github.job }}
+          category: /codeql-scan:csharp
 
-  CodeQL-Scan-Other-Langs:
+  CodeQL-Scan:
     strategy:
       matrix:
         languages: [go, javascript, python, cpp, java, ruby]
@@ -112,7 +112,7 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
         with:
-          category: /codeql-scan:${{ github.job }}
+          category: /codeql-scan:${{ matrix.languages }}
 
   FileChecks:
     runs-on: im-ghas-linux

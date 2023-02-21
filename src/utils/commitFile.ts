@@ -29,7 +29,7 @@ const fileName = "code-analysis.yml";
 const fileNameDraft = "code-analysis-draft.yml";
 const placeholderRunsOn = "RUNS_ON_PLACEHOLDER";
 const runs_on_windows = "[self-hosted, windows-2019]";
-const runs_on_linux = "im-ghas-runner";
+const runs_on_linux = "im-ghas-linux";
 
 const doesCodeScanRequireWindowsRunner = (repoName: string): boolean => {
   const workflowPath = `${destDir}/${tempDIR}/${repoName}/.github/workflows/im-build-dotnet-ci.yml`;
