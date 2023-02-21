@@ -71,7 +71,7 @@ jobs:
       matrix:
         languages: [go, javascript, python, cpp, java, ruby]
 
-    runs-on: im-ghas-runner
+    runs-on: im-ghas-linux
 
     permissions:
       actions: read # only required for workflows in private repositories
