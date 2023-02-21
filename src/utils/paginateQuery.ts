@@ -45,11 +45,19 @@ const performRepositoryQuery = async (
           viewerPermission: node.viewerPermission,
           visibility: node.viewerPermission,
           primaryLanguage: {
-            // We don't care about the language, as long as it matches one of them
-            // because the single workflow will support scanning all
-            name: node.languages.nodes[0].name,
+            name: "",
           },
         };
+
+        const repoLanguages: Array<string> = [];
+        node.languages.nodes.forEach((node) => {
+          const nodeName = getcodeQLLanguage(node.name);
+          if (nodeName != "no-language") {
+            repoLanguages.push(nodeName);
+          }
+        });
+        repoLanguages.sort();
+        responseNode.primaryLanguage.name = repoLanguages.join(", ");
         responseNodes.push(responseNode);
       }
     });
@@ -116,19 +124,24 @@ const getRepositoryInOrganizationPaginate = async (
       );
 
     results.forEach((element) => {
-      return paginatedData.push({
-        enableDependabot: enable.includes("dependabot") as boolean,
-        enableDependabotUpdates: enable.includes(
-          "dependabotupdates"
-        ) as boolean,
-        enableSecretScanning: enable.includes("secretscanning") as boolean,
-        enableCodeScanning: enable.includes("codescanning") as boolean,
-        enablePushProtection: enable.includes("pushprotection") as boolean,
-        primaryLanguage: getcodeQLLanguage(element.primaryLanguage?.name || ""),
-        createIssue:
-          process.env.CREATE_ISSUE === "true" ? true : (false as boolean),
-        repo: element.nameWithOwner,
-      });
+      if (
+        element.primaryLanguage != null &&
+        element.primaryLanguage.name != ""
+      ) {
+        return paginatedData.push({
+          enableDependabot: enable.includes("dependabot") as boolean,
+          enableDependabotUpdates: enable.includes(
+            "dependabotupdates"
+          ) as boolean,
+          enableSecretScanning: enable.includes("secretscanning") as boolean,
+          enableCodeScanning: enable.includes("codescanning") as boolean,
+          enablePushProtection: enable.includes("pushprotection") as boolean,
+          primaryLanguage: element.primaryLanguage?.name || "",
+          createIssue:
+            process.env.CREATE_ISSUE === "true" ? true : (false as boolean),
+          repo: element.nameWithOwner,
+        });
+      }
     });
 
     if (hasNextPage) {

@@ -23,10 +23,8 @@ on:
 
 jobs:
   CodeQL-Scan:
-    # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
-    # runs-on: ubuntu-latest
-    # runs-on: [self-hosted, ubuntu-20.04]
-    runs-on: im-ghas-linux
+    # possible values for runs-on: im-ghas-linux or [self-hosted, windows-2019]
+    runs-on: [self-hosted, windows-2019]
 
     permissions:
       actions: read # only required for workflows in private repositories
@@ -78,8 +76,6 @@ jobs:
           category: /codeql-scan:${{ github.job }}
 
   FileChecks:
-    # runs-on: ubuntu-latest
-    # runs-on: [self-hosted, ubuntu-20.04]
     runs-on: im-ghas-linux
 
     outputs:
@@ -128,9 +124,6 @@ jobs:
           GITHUB_WORKSPACE: ${{ github.workspace }}
 
   PowerShell-Scan:
-    # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
-    # runs-on: ubuntu-latest
-    # runs-on: [self-hosted, ubuntu-20.04]
     runs-on: im-ghas-linux
     needs: FileChecks
     if: needs.FileChecks.outputs.contains_pwsh == 'true'
@@ -160,9 +153,6 @@ jobs:
           sarif_file: powershellresults.sarif
 
   Terraform-Scan:
-    # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
-    # runs-on: ubuntu-latest
-    # runs-on: [self-hosted, ubuntu-20.04]
     runs-on: im-ghas-linux
     needs: FileChecks
     if: needs.FileChecks.outputs.contains_tf == 'true'

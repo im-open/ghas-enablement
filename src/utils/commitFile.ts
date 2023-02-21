@@ -1,9 +1,10 @@
 /* eslint-disable no-alert, no-await-in-loop */
 
-import util from "util";
 import delay from "delay";
+import fs from "fs";
+import util from "util";
 
-import { inform, error, platform, baseURL } from "./globals";
+import { inform, error, platform, baseURL, destDir, tempDIR } from "./globals";
 
 import { generalCommands } from "./commands";
 
@@ -23,6 +24,106 @@ if (platform !== "win32" && platform !== "darwin" && platform !== "linux") {
     wider support`
   );
 }
+
+const binWorkflows = "./bin/workflows";
+const loadTemplate = (templateName: string): string => {
+  const draftPath = `${binWorkflows}/${templateName}`;
+
+  const template = fs.readFileSync(draftPath).toString("utf-8");
+  return template;
+};
+
+const fileName = "code-analysis.yml";
+const placeholderRunsOn = "RUNS_ON_PLACEHOLDER";
+const placeholderMatrixLangs = "MATRIX_LANGS_PLACEHOLDER";
+const runs_on_windows = "[self-hosted, windows-2019]";
+const runs_on_linux = "im-ghas-linux";
+const templateCs = loadTemplate("template-cs.yml");
+const templateOthers = loadTemplate("template-other-langs.yml");
+const templatePwsh = loadTemplate("template-ps1.yml");
+const templateTf = loadTemplate("template-tf.yml");
+const templateWorkflow = loadTemplate("template-workflow.yml");
+
+const doesCodeScanRequireWindowsRunner = (repoName: string): boolean => {
+  const workflowPath = `${destDir}/${tempDIR}/${repoName}/.github/workflows/im-build-dotnet-ci.yml`;
+  let requiresWindows = false;
+
+  if (fs.existsSync(workflowPath)) {
+    const fileContents = fs.readFileSync(workflowPath).toString("utf-8");
+    const fileLines = fileContents.split("\n");
+    for (let index = 0; index < fileLines.length; index++) {
+      const line = fileLines[index];
+      if (line.includes("runs-on:") && line.includes("windows-")) {
+        requiresWindows = true;
+        break;
+      }
+    }
+  }
+  return requiresWindows;
+};
+
+const createWorkflowFile = (
+  primaryLanguage: string,
+  requiresWindows: boolean
+): string => {
+  const workflowParts: Array<string> = [];
+  workflowParts.push(templateWorkflow);
+
+  const primaryLanguageList = primaryLanguage.split(",");
+  const otherLangs: Array<string> = [];
+  for (let index = 0; index < primaryLanguageList.length; index++) {
+    const languageTrim = primaryLanguageList[index].trim();
+    if (languageTrim == "csharp") {
+      // Create C# job and specify if it's windows or linux
+      const templateCsWithReplacements = templateCs.replace(
+        placeholderRunsOn,
+        requiresWindows ? runs_on_windows : runs_on_linux
+      );
+      workflowParts.push(templateCsWithReplacements);
+    } else if (languageTrim == "hcl") {
+      // Create terraform scan job
+      workflowParts.push(templateTf);
+    } else if (languageTrim == "powershell") {
+      // Create PowerShell scan job
+      workflowParts.push(templatePwsh);
+    } else if (
+      ["go", "javascript", "python", "cpp", "java", "ruby"].includes(
+        languageTrim
+      )
+    ) {
+      // Add language to other langs
+      otherLangs.push(languageTrim);
+    }
+  }
+
+  if (otherLangs.length > 0) {
+    // create other CodeQL languages job
+    const matrixLangs = otherLangs.join(", ");
+    const templateOtherWithReplacements = templateOthers.replace(
+      placeholderMatrixLangs,
+      matrixLangs
+    );
+    workflowParts.push(templateOtherWithReplacements);
+  }
+
+  // join list as a string separating list items by new line
+  const workflowFile = workflowParts.join("\n");
+  return workflowFile;
+};
+
+const setupCodeAnalysisYml = (
+  requiresWindows: boolean,
+  primaryLanguage: string
+): boolean => {
+  const workflowFinal = createWorkflowFile(primaryLanguage, requiresWindows);
+  try {
+    const finalPath = `${binWorkflows}/${fileName}`;
+    fs.writeFileSync(finalPath, workflowFinal);
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 export const commitFileMac = async (
   owner: string,
@@ -45,14 +146,12 @@ export const commitFileMac = async (
     env: { LANGUAGE_TO_CHECK: language },
   } = process;
   let codeQLLanguage = language;
-  if (!codeQLLanguage && primaryLanguage != "no-language") {
+  if (!codeQLLanguage) {
     codeQLLanguage = primaryLanguage;
   }
   if (!codeQLLanguage) {
     return { status: 500, message: "no language on repo" };
   }
-
-  const fileName = `code-analysis.yml`;
 
   try {
     gitCommands = generalCommands(
@@ -95,6 +194,12 @@ export const commitFileMac = async (
       if (!whiteListed(err.message)) {
         throw err;
       }
+    }
+    if (gitCommand.args.includes("clone")) {
+      // after cloning repo check if we will need a windows runner for code scan
+      const requiresWindows = doesCodeScanRequireWindowsRunner(repo);
+      // write code-analysis.yml with appropriate code scan runner type
+      setupCodeAnalysisYml(requiresWindows, primaryLanguage);
     }
   }
   return { status: 200, message: "success" };

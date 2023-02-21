@@ -78,14 +78,6 @@ export const generalCommands = (
       args: ["push", "--set-upstream", "origin", `${branch}`],
       cwd: `/${destDir}/${tempDIR}/${repo}`,
     },
-    {
-      command: platform === "win32" ? "rmdir" : "rm",
-      args: [
-        ...(platform === "win32" ? ["/Q", "/S"] : ["-rf"]),
-        winSeparator(`./${tempDIR}/`, platform),
-      ],
-      cwd: `/${destDir}/`,
-    },
   ] as commands;
   return commands;
 };
