@@ -1,22 +1,35 @@
-Terraform-Scan:
-  runs-on: im-ghas-linux
+jobs:
+  Terraform-Scan:
+    runs-on: im-ghas-linux
 
-  permissions:
-    actions: read # only required for workflows in private repositories
-    contents: read # for actions/checkout fetch code
-    pull-requests: write # can write to pull requests
-    security-events: write # required for all workflows
+    permissions:
+      actions: read # only required for workflows in private repositories
+      contents: read # for actions/checkout fetch code
+      pull-requests: write # can write to pull requests
+      security-events: write # required for all workflows
 
-  steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Perform Terraform Scan
-      uses: aquasecurity/tfsec-sarif-action@v0.1.4
-      with:
-        sarif_file: tfsec.sarif
+      # Go to https://aquasecurity.github.io/tfsec/v1.28.1/checks/azure/ to see check expectations
+      - name: Perform Terraform Scan
+        uses: aquasecurity/tfsec-sarif-action@v0.1.4
+        with:
+          sarif_file: tfsec.sarif
 
-    - name: Upload Terraform SARIF results
-      uses: github/codeql-action/upload-sarif@v2
-      with:
-        sarif_file: tfsec.sarif
+      - name: Upload Terraform SARIF results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: tfsec.sarif
+
+      - name: Tfsec Rules Lookup Comment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'To view tfsec checks go to [tfsec azure checks](https://aquasecurity.github.io/tfsec/v1.28.1/checks/azure/).'
+            })
