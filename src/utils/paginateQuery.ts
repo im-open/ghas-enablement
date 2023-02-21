@@ -45,8 +45,6 @@ const performRepositoryQuery = async (
           viewerPermission: node.viewerPermission,
           visibility: node.viewerPermission,
           primaryLanguage: {
-            // We don't care about the language, as long as it matches one of them
-            // because the single workflow will support scanning all
             name: "",
           },
         };
@@ -56,6 +54,7 @@ const performRepositoryQuery = async (
             const current_name = responseNode.primaryLanguage.name;
             const new_name =
               current_name == "" ? node_name : `${current_name}, ${node_name}`;
+            // we are creating a csv of scan-supported languages in the repository
             responseNode.primaryLanguage.name = new_name;
           }
         });
