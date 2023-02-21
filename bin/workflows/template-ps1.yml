@@ -27,6 +27,7 @@ jobs:
           sarif_file: powershellresults.sarif
 
       - name: PowerShell Rules Lookup Comment
+        if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
         with:
           script: |

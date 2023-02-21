@@ -24,6 +24,7 @@ jobs:
           sarif_file: tfsec.sarif
 
       - name: Tfsec Rules Lookup Comment
+        if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
         with:
           script: |
