@@ -25,12 +25,24 @@ if (platform !== "win32" && platform !== "darwin" && platform !== "linux") {
   );
 }
 
+const binWorkflows = "./bin/workflows";
+const loadTemplate = (templateName: string): string => {
+  const draftPath = `${binWorkflows}/${templateName}`;
+
+  const template = fs.readFileSync(draftPath).toString("utf-8");
+  return template;
+};
+
 const fileName = "code-analysis.yml";
-const fileNameDraft = "code-analysis-draft.yml";
 const placeholderRunsOn = "RUNS_ON_PLACEHOLDER";
 const placeholderMatrixLangs = "MATRIX_LANGS_PLACEHOLDER";
 const runs_on_windows = "[self-hosted, windows-2019]";
 const runs_on_linux = "im-ghas-linux";
+const templateCs = loadTemplate("template-cs.yml");
+const templateOthers = loadTemplate("template-other-langs.yml");
+const templatePwsh = loadTemplate("template-ps1.yml");
+const templateTf = loadTemplate("template-tf.yml");
+const templateTop = loadTemplate("template-top.yml");
 
 const doesCodeScanRequireWindowsRunner = (repoName: string): boolean => {
   const workflowPath = `${destDir}/${tempDIR}/${repoName}/.github/workflows/im-build-dotnet-ci.yml`;
@@ -50,45 +62,60 @@ const doesCodeScanRequireWindowsRunner = (repoName: string): boolean => {
   return requiresWindows;
 };
 
-const getCodeQlSupportedLanguages = (primaryLanguage: string): string => {
-  const supportedLanguages: Array<string> = [];
-  const codeql_languages = [
-    "go",
-    "javascript",
-    "python",
-    "cpp",
-    "java",
-    "ruby",
-  ];
+const createWorkflowFile = (
+  primaryLanguage: string,
+  requiresWindows: boolean
+): string => {
+  const workflowParts: Array<string> = [];
+  workflowParts.push(templateTop);
+
   const primaryLanguageList = primaryLanguage.split(",");
-  primaryLanguageList.forEach((language) => {
-    const languageTrimmed = language.trim();
-    if (codeql_languages.includes(languageTrimmed)) {
-      supportedLanguages.push(languageTrimmed);
+  const otherLangs: Array<string> = [];
+  for (let index = 0; index < primaryLanguageList.length; index++) {
+    const languageTrim = primaryLanguageList[index].trim();
+    if (languageTrim == "csharp") {
+      // Create C# job and specify if it's windows or linux
+      const templateCsWithReplacements = templateCs.replace(
+        placeholderRunsOn,
+        requiresWindows ? runs_on_windows : runs_on_linux
+      );
+      workflowParts.push(templateCsWithReplacements);
+    } else if (languageTrim == "hcl") {
+      // Create terraform scan job
+      workflowParts.push(templateTf);
+    } else if (languageTrim == "powershell") {
+      // Create PowerShell scan job
+      workflowParts.push(templatePwsh);
+    } else if (
+      ["go", "javascript", "python", "cpp", "java", "ruby"].includes(
+        languageTrim
+      )
+    ) {
+      // Add language to other langs
+      otherLangs.push(languageTrim);
     }
-  });
-  if (supportedLanguages.length > 0) {
-    return supportedLanguages.join(", ");
   }
-  return "";
+
+  if (otherLangs.length > 0) {
+    // create other CodeQL languages job
+    const matrixLangs = otherLangs.join(", ");
+    const templateOtherWithReplacements = templateOthers.replace(
+      placeholderMatrixLangs,
+      matrixLangs
+    );
+    workflowParts.push(templateOtherWithReplacements);
+  }
+
+  // join list as a string separating list items by new line
+  const workflowFile = workflowParts.join("\n");
+  return workflowFile;
 };
 
 const setupCodeAnalysisYml = (
   requiresWindows: boolean,
   primaryLanguage: string
 ): boolean => {
-  const binWorkflows = "./bin/workflows";
-  const draftPath = `${binWorkflows}/${fileNameDraft}`;
-
-  const workflowDraft = fs.readFileSync(draftPath).toString("utf-8");
-
-  const codeQlLanguages = getCodeQlSupportedLanguages(primaryLanguage);
-  const workflowFinal = workflowDraft
-    .replace(
-      placeholderRunsOn,
-      requiresWindows ? runs_on_windows : runs_on_linux
-    )
-    .replace(placeholderMatrixLangs, codeQlLanguages);
+  const workflowFinal = createWorkflowFile(primaryLanguage, requiresWindows);
   try {
     const finalPath = `${binWorkflows}/${fileName}`;
     fs.writeFileSync(finalPath, workflowFinal);
