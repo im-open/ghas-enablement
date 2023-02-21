@@ -1,7 +1,7 @@
 CodeQL-Scan:
   strategy:
     matrix:
-      languages: [MATRIX_LANGS_PLACEHOLDER] # [go, javascript, python, cpp, java, ruby]
+      languages: [MATRIX_LANGS_PLACEHOLDER]
 
   runs-on: im-ghas-linux
 
