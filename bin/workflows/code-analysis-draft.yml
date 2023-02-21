@@ -22,11 +22,13 @@ on:
     - cron: "30 1 * * 0"
 
 jobs:
-  CodeQL-Scan:
-    env:
-      os: OS_PLACEHOLDER
+  env:
+    os: OS_PLACEHOLDER
+    has_csharp: HAS_CSHARP_PLACEHOLDER
 
-    runs-on: RUNS_ON_PLACEHOLDER
+  CodeQL-CSharp-Windows:
+    if: env.os == 'windows' and env.has_csharp == 'true'
+    runs-on: [self-hosted, windows-2019]
 
     permissions:
       actions: read # only required for workflows in private repositories
@@ -35,12 +37,6 @@ jobs:
       security-events: write # required for all workflows
 
     steps:
-      # temp step until we have an official windows runner with python on it
-      - name: Install python
-        if: env.os == 'windows'
-        shell: pwsh
-        run: choco install python
-
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -48,19 +44,104 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
-          # The amount of memory in MB that can be used by CodeQL extractors.
-          # By default, CodeQL extractors will use most of the memory available in the system
-          # (which for GitHub-hosted runners is 6GB for Linux, 5.5GB for Windows, and 13GB for macOS).
-          # This input also sets the amount of memory that can later be used by the "analyze" action.
           ram: 1024
           # Using additional queries to get more results
           # See https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/customizing-code-scanning#using-queries-in-ql-packs
           queries: security-and-quality
-        # with:
-        #   debug: true
-        # Override language selection by uncommenting this and choosing your languages
-        # with:
-        #   languages: go, javascript, csharp, python, cpp, java, ruby
+          languages: csharp
+
+      # Autobuild attempts to build any compiled languages (C/C++, C#, Go, or Java).
+      # If this step fails, then you should remove it and run the build manually (see below).
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      # ℹ️ Command-line programs to run using the OS shell.
+      # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
+
+      # ✏️ If the Autobuild fails above, remove it and uncomment the following
+      #    three lines and modify them (or add more) to build your code if your
+      #    project uses a compiled language
+
+      # - run: |
+      #   echo "Run, Build Application using script"
+      #   ./location_of_script_within_repo/buildscript.sh
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: /codeql-csharp-win-scan:${{ github.job }}
+
+  CodeQL-CSharp-Linux:
+    if: env.os != 'windows' and env.has_csharp == 'true'
+    runs-on: im-ghas-runner
+
+    permissions:
+      actions: read # only required for workflows in private repositories
+      contents: read # for actions/checkout fetch code
+      pull-requests: write # can write to pull requests
+      security-events: write # required for all workflows
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Initializes the CodeQL tools for scanning.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          ram: 1024
+          # Using additional queries to get more results
+          # See https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/customizing-code-scanning#using-queries-in-ql-packs
+          queries: security-and-quality
+          languages: csharp
+
+      # Autobuild attempts to build any compiled languages (C/C++, C#, Go, or Java).
+      # If this step fails, then you should remove it and run the build manually (see below).
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      # ℹ️ Command-line programs to run using the OS shell.
+      # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
+
+      # ✏️ If the Autobuild fails above, remove it and uncomment the following
+      #    three lines and modify them (or add more) to build your code if your
+      #    project uses a compiled language
+
+      # - run: |
+      #   echo "Run, Build Application using script"
+      #   ./location_of_script_within_repo/buildscript.sh
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: /codeql-csharp-linux-scan:${{ github.job }}
+
+  CodeQL-Scan-Other-Langs:
+    strategy:
+      matrix:
+        languages: [go, javascript, python, cpp, java, ruby]
+
+    runs-on: im-ghas-runner
+
+    permissions:
+      actions: read # only required for workflows in private repositories
+      contents: read # for actions/checkout fetch code
+      pull-requests: write # can write to pull requests
+      security-events: write # required for all workflows
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Initializes the CodeQL tools for scanning.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          ram: 1024
+          # Using additional queries to get more results
+          # See https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/customizing-code-scanning#using-queries-in-ql-packs
+          queries: security-and-quality
+          languages: ${{ matrix.languages }}
 
       # Autobuild attempts to build any compiled languages (C/C++, C#, Go, or Java).
       # If this step fails, then you should remove it and run the build manually (see below).
