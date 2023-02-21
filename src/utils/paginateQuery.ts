@@ -48,16 +48,15 @@ const performRepositoryQuery = async (
             name: "",
           },
         };
+
+        const repoLanguages: Array<string> = [];
         node.languages.nodes.forEach((node) => {
-          const node_name = getcodeQLLanguage(node.name);
-          if (node_name != "no-language") {
-            const current_name = responseNode.primaryLanguage.name;
-            const new_name =
-              current_name == "" ? node_name : `${current_name}, ${node_name}`;
-            // we are creating a csv of scan-supported languages in the repository
-            responseNode.primaryLanguage.name = new_name;
+          const nodeName = getcodeQLLanguage(node.name);
+          if (nodeName != "no-language") {
+            repoLanguages.push(nodeName);
           }
         });
+        responseNode.primaryLanguage.name = repoLanguages.join(", ");
         responseNodes.push(responseNode);
       }
     });
