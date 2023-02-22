@@ -18,6 +18,19 @@ import { Octokit } from "@octokit/core";
 import { ref as branchRef, inform, reposFileLocation } from "./globals.js";
 import { reposFile } from "../../types/common/index.js";
 
+const hasAtLeastOneSupportedLanguage = (primaryLanguage: string): boolean => {
+  let hasAtLeastOneSupported = false;
+  const languageList = primaryLanguage.split(",");
+  for (let index = 0; index < languageList.length; index++) {
+    const language = languageList[index].trim();
+    if (!language.startsWith("not-supported")) {
+      hasAtLeastOneSupported = true;
+      break;
+    }
+  }
+  return hasAtLeastOneSupported;
+};
+
 export const worker = async (): Promise<unknown> => {
   let res;
   let orgIndex: number;
@@ -92,7 +105,10 @@ export const worker = async (): Promise<unknown> => {
         : null;
 
       // Kick off the process for enabling Code Scanning only if it is set to be enabled AND the primary language for the repo exists. If it doesn't exist that means CodeQL doesn't support it.
-      if (enableCodeScanning) {
+      if (
+        enableCodeScanning &&
+        hasAtLeastOneSupportedLanguage(primaryLanguage)
+      ) {
         const authToken = (await generateAuth()) as string;
         let continueWithCodeScanCreation = true;
         try {

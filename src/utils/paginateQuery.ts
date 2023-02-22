@@ -52,9 +52,7 @@ const performRepositoryQuery = async (
         const repoLanguages: Array<string> = [];
         node.languages.nodes.forEach((node) => {
           const nodeName = getcodeQLLanguage(node.name);
-          if (nodeName != "no-language") {
-            repoLanguages.push(nodeName);
-          }
+          repoLanguages.push(nodeName);
         });
         repoLanguages.sort();
         responseNode.primaryLanguage.name = repoLanguages.join(", ");
@@ -94,7 +92,7 @@ const getRepositoryInOrganizationPaginate = async (
         primaryLanguage,
         visibility,
       } = value;
-      const { name } = primaryLanguage || { name: "no-language" };
+      const { name } = primaryLanguage || { name: "not-supported" };
       inform(
         `Repo Name: ${nameWithOwner} Permission: ${viewerPermission} Archived: ${isArchived} Language: ${name} Visibility: ${visibility}`
       );
@@ -171,7 +169,7 @@ export const paginateQuery = async (
       slug,
       graphQuery
     );
-    return data.filter(({ primaryLanguage: pl }) => pl !== "no-language");
+    return data.filter(({ primaryLanguage: pl }) => pl !== "not-supported");
   } catch (err) {
     error(err);
     throw err;

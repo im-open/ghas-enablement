@@ -36,7 +36,7 @@ export const getcodeQLLanguage = (primaryLanguage: string): string => {
       codeQLLang = "powershell";
       break;
     default:
-      codeQLLang = "no-language";
+      codeQLLang = `not-supported-${formattedLanguage}`;
       break;
   }
 
