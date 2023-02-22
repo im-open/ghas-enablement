@@ -1,0 +1,20 @@
+jobs:
+  Dependency-Review:
+    runs-on: im-ghas-linux
+    if: github.event_name == 'pull_request'
+
+    permissions:
+      actions: read # only required for workflows in private repositories
+      contents: read # for actions/checkout fetch code
+      pull-requests: write # can write to pull requests
+      security-events: write # required for all workflows
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # https://github.com/actions/dependency-review-action
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3
+        with:
+          comment-summary-in-pr: true

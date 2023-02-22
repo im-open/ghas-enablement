@@ -43,6 +43,7 @@ const templateOthers = loadTemplate("template-other-langs.yml");
 const templatePwsh = loadTemplate("template-ps1.yml");
 const templateTf = loadTemplate("template-tf.yml");
 const templateWorkflow = loadTemplate("template-workflow.yml");
+const templateDependency = loadTemplate("template-dependency.yml");
 
 const doesCodeScanRequireWindowsRunner = (repoName: string): boolean => {
   const workflowPath = `${destDir}/${tempDIR}/${repoName}/.github/workflows/im-build-dotnet-ci.yml`;
@@ -75,6 +76,7 @@ const createWorkflowFile = (
 ): string => {
   const workflowParts: Array<string> = [];
   workflowParts.push(templateWorkflow);
+  addWorkflowJob(templateDependency, workflowParts);
 
   const primaryLanguageList = primaryLanguage.split(",");
   const otherLangs: Array<string> = [];
