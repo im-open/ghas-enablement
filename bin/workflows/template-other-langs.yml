@@ -16,6 +16,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # For JavaScript use filter-sarif action so we can remove results from dist folders
+      # https://github.com/advanced-security/filter-sarif
+
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
