@@ -169,7 +169,7 @@ export const paginateQuery = async (
       slug,
       graphQuery
     );
-    return data.filter(({ primaryLanguage: pl }) => pl !== "not-supported");
+    return data;
   } catch (err) {
     error(err);
     throw err;
