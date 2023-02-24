@@ -2,6 +2,10 @@ jobs:
   CodeQL-Scan-csharp:
     runs-on: RUNS_ON_PLACEHOLDER
 
+    env:
+      DOTNET_VERSION: DOTNET_VERSION_PLACEHOLDER
+      SOLUTION_FILE: SOLUTION_FILE_PLACEHOLDER
+
     permissions:
       actions: read # only required for workflows in private repositories
       contents: read # for actions/checkout fetch code
@@ -16,27 +20,25 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
-          ram: 1024
+          ram: 1536 # Give 1.5 GB ram to CodeQL, 1024 can lead to out of memory issues for some C# repos
           # Using additional queries to get more results
           # See https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/customizing-code-scanning#using-queries-in-ql-packs
           queries: security-and-quality
           languages: csharp
 
-      # Autobuild attempts to build any compiled languages (C/C++, C#, Go, or Java).
-      # If this step fails, then you should remove it and run the build manually (see below).
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v2
+      - name: Authenticate with GitHub Packages
+        uses: im-open/authenticate-with-gh-package-registries@v1.0.5
+        with:
+          read-pkg-token: ${{ secrets.READ_PKG_TOKEN }} # This is an org-level secret
+          orgs: "ORG_PLACEHOLDER"
 
-      # ℹ️ Command-line programs to run using the OS shell.
-      # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      # ✏️ If the Autobuild fails above, remove it and uncomment the following
-      #    three lines and modify them (or add more) to build your code if your
-      #    project uses a compiled language
-
-      # - run: |
-      #   echo "Run, Build Application using script"
-      #   ./location_of_script_within_repo/buildscript.sh
+      - name: dotnet build
+        run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release
 
       - name: Perform C# CodeQL Analysis
         uses: github/codeql-action/analyze@v2
