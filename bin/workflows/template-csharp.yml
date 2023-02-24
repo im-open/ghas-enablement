@@ -16,6 +16,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
@@ -31,11 +36,6 @@ jobs:
         with:
           read-pkg-token: ${{ secrets.READ_PKG_TOKEN }} # This is an org-level secret
           orgs: "PLACEHOLDER_ORG"
-
-      - name: Setup .NET Core
-        uses: actions/setup-dotnet@v2
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: dotnet build
         run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release
