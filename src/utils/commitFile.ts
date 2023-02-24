@@ -243,7 +243,7 @@ export const commitFileMac = async (
       // after cloning repo check if we will need a windows runner for code scan
       const metadata = gatherCSharpCiYmlMetadata(repo);
       // write code-analysis.yml with appropriate code scan runner type
-      setupCodeAnalysisYml(metadata, primaryLanguage, owner);
+      setupCodeAnalysisYml(metadata, owner, primaryLanguage);
     }
   }
   return { status: 200, message: "success" };
