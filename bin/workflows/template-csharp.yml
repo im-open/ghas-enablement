@@ -1,10 +1,10 @@
 jobs:
   CodeQL-Scan-csharp:
-    runs-on: RUNS_ON_PLACEHOLDER
+    runs-on: PLACEHOLDER_RUNS_ON
 
     env:
-      DOTNET_VERSION: DOTNET_VERSION_PLACEHOLDER
-      SOLUTION_FILE: SOLUTION_FILE_PLACEHOLDER
+      DOTNET_VERSION: PLACEHOLDER_DOTNET_VERSION
+      SOLUTION_FILE: PLACEHOLDER_SOLUTION_FILE
 
     permissions:
       actions: read # only required for workflows in private repositories
@@ -30,7 +30,7 @@ jobs:
         uses: im-open/authenticate-with-gh-package-registries@v1.0.5
         with:
           read-pkg-token: ${{ secrets.READ_PKG_TOKEN }} # This is an org-level secret
-          orgs: "ORG_PLACEHOLDER"
+          orgs: "PLACEHOLDER_ORG"
 
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v2

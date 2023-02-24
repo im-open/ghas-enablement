@@ -10,7 +10,7 @@ import { generalCommands } from "./commands";
 
 import { execFile as ImportedExec } from "child_process";
 
-import { response, commands } from "../../types/common";
+import { response, commands, CSharpCiYmlMetadata } from "../../types/common";
 
 const execFile = util.promisify(ImportedExec);
 
@@ -34,33 +34,62 @@ const loadTemplate = (templateName: string): string => {
 };
 
 const fileName = "code-analysis.yml";
-const placeholderRunsOn = "RUNS_ON_PLACEHOLDER";
-const placeholderMatrixLangs = "MATRIX_LANGS_PLACEHOLDER";
+const placeholderRunsOn = "PLACEHOLDER_RUNS_ON";
+const placeholderMatrixLangs = "PLACEHOLDER_MATRIX_LANGS";
+const placeholderDotnetVersion = "PLACEHOLDER_DOTNET_VERSION";
+const placeholderSolutionFile = "PLACEHOLDER_SOLUTION_FILE";
+const placeholderOrg = "PLACEHOLDER_ORG";
+
 const runs_on_windows = "[self-hosted, windows-2019]";
 const runs_on_linux = "im-ghas-linux";
-const templateCs = loadTemplate("template-cs.yml");
+const templateCs = loadTemplate("template-csharp.yml");
 const templateOthers = loadTemplate("template-other-langs.yml");
-const templatePwsh = loadTemplate("template-ps1.yml");
-const templateTf = loadTemplate("template-tf.yml");
+const templatePwsh = loadTemplate("template-powershell.yml");
+const templateTf = loadTemplate("template-terraform.yml");
 const templateWorkflow = loadTemplate("template-workflow.yml");
 const templateDependency = loadTemplate("template-dependency.yml");
 
-const doesCodeScanRequireWindowsRunner = (repoName: string): boolean => {
-  const workflowPath = `${destDir}/${tempDIR}/${repoName}/.github/workflows/im-build-dotnet-ci.yml`;
+const gatherCSharpCiYmlMetadata = (repoName: string): CSharpCiYmlMetadata => {
+  const workflowsPath = `${destDir}/${tempDIR}/${repoName}/.github/workflows`;
+  let dotnetVersion: string = "";
+  let solutionFile: string = "";
   let requiresWindows = false;
 
-  if (fs.existsSync(workflowPath)) {
-    const fileContents = fs.readFileSync(workflowPath).toString("utf-8");
-    const fileLines = fileContents.split("\n");
-    for (let index = 0; index < fileLines.length; index++) {
-      const line = fileLines[index];
-      if (line.includes("runs-on:") && line.includes("windows-")) {
-        requiresWindows = true;
-        break;
+  if (fs.existsSync(workflowsPath)) {
+    const fileList = fs.readdirSync(workflowsPath);
+    for (let fIndex = 0; fIndex < fileList.length; fIndex++) {
+      const fileName = fileList[fIndex];
+      if (fileName.endsWith("ci.yml")) {
+        const filePath = `${workflowsPath}/${fileName}`;
+        const fileContents = fs.readFileSync(filePath).toString("utf-8");
+        const fileLines = fileContents.split("\n");
+        for (let lIndex = 0; lIndex < fileLines.length; lIndex++) {
+          const line = fileLines[lIndex];
+          if (line.includes("runs-on") && line.includes("windows-")) {
+            requiresWindows = true;
+          } else if (line.includes("DOTNET_VERSION:")) {
+            dotnetVersion = line
+              .replace("DOTNET_VERSION:", "")
+              .replaceAll('"', "")
+              .replaceAll("'", "")
+              .trim();
+          } else if (line.includes("SOLUTION_FILE:")) {
+            solutionFile = line
+              .replace("SOLUTION_FILE:", "")
+              .replaceAll('"', "")
+              .replaceAll("'", "")
+              .trim();
+          }
+        }
       }
     }
   }
-  return requiresWindows;
+  const result = {
+    dotnetVersion,
+    solutionFile,
+    requiresWindows,
+  } as CSharpCiYmlMetadata;
+  return result;
 };
 
 const addWorkflowJob = (template: string, workflowParts: Array<string>) => {
@@ -72,7 +101,8 @@ const addWorkflowJob = (template: string, workflowParts: Array<string>) => {
 
 const createWorkflowFile = (
   primaryLanguage: string,
-  requiresWindows: boolean
+  metadata: CSharpCiYmlMetadata,
+  orgName: string
 ): string => {
   const workflowParts: Array<string> = [];
   workflowParts.push(templateWorkflow);
@@ -84,10 +114,14 @@ const createWorkflowFile = (
     const languageTrim = primaryLanguageList[index].trim();
     if (languageTrim == "csharp") {
       // Create C# job and specify if it's windows or linux
-      const templateCsWithReplacements = templateCs.replace(
-        placeholderRunsOn,
-        requiresWindows ? runs_on_windows : runs_on_linux
-      );
+      const templateCsWithReplacements = templateCs
+        .replace(
+          placeholderRunsOn,
+          metadata.requiresWindows ? runs_on_windows : runs_on_linux
+        )
+        .replace(placeholderDotnetVersion, metadata.dotnetVersion)
+        .replace(placeholderSolutionFile, metadata.solutionFile)
+        .replace(placeholderOrg, orgName);
       addWorkflowJob(templateCsWithReplacements, workflowParts);
     } else if (languageTrim == "hcl") {
       // Create terraform scan job
@@ -121,10 +155,11 @@ const createWorkflowFile = (
 };
 
 const setupCodeAnalysisYml = (
-  requiresWindows: boolean,
+  metadata: CSharpCiYmlMetadata,
+  orgName: string,
   primaryLanguage: string
 ): boolean => {
-  const workflowFinal = createWorkflowFile(primaryLanguage, requiresWindows);
+  const workflowFinal = createWorkflowFile(primaryLanguage, metadata, orgName);
   try {
     const finalPath = `${binWorkflows}/${fileName}`;
     fs.writeFileSync(finalPath, workflowFinal);
@@ -206,9 +241,9 @@ export const commitFileMac = async (
     }
     if (gitCommand.args.includes("clone")) {
       // after cloning repo check if we will need a windows runner for code scan
-      const requiresWindows = doesCodeScanRequireWindowsRunner(repo);
+      const metadata = gatherCSharpCiYmlMetadata(repo);
       // write code-analysis.yml with appropriate code scan runner type
-      setupCodeAnalysisYml(requiresWindows, primaryLanguage);
+      setupCodeAnalysisYml(metadata, primaryLanguage, owner);
     }
   }
   return { status: 200, message: "success" };

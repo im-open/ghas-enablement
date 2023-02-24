@@ -138,5 +138,11 @@ export type GraphQLQueryResponseGetRepos = {
   };
 };
 
+export type CSharpCiYmlMetadata = {
+  dotnetVersion: string;
+  solutionFile: string;
+  requiresWindows: boolean;
+};
+
 export type GraphQLQueryResponseData = GraphQLQueryResponseGetRepos[];
 export type GraphQLQueryResponse = [string, string, GraphQLQueryResponseData];

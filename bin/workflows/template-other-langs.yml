@@ -2,7 +2,7 @@ jobs:
   CodeQL-Scan:
     strategy:
       matrix:
-        languages: [MATRIX_LANGS_PLACEHOLDER]
+        languages: [PLACEHOLDER_MATRIX_LANGS]
 
     runs-on: im-ghas-linux
 
