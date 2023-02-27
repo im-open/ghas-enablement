@@ -63,8 +63,11 @@ jobs:
 
       - name: Filter JavaScript SARIF Results
         if: matrix.languages == 'javascript'
+        # Information about this tool
+        # https://github.com/advanced-security/filter-sarif
         uses: advanced-security/filter-sarif@09a9626fe5e89584ba5ed115143975bfc59ac6a9
         with:
+          # Remove results under dist directory
           patterns: |
             -**/dist/**
           input: sarif-results/javascript.sarif
