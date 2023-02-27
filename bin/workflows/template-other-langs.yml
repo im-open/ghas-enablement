@@ -45,7 +45,33 @@ jobs:
       #   echo "Run, Build Application using script"
       #   ./location_of_script_within_repo/buildscript.sh
 
+      # Perform normal analysis
       - name: Perform CodeQL Analysis
+        if: matrix.languages != 'javascript'
         uses: github/codeql-action/analyze@v2
         with:
           category: /codeql-scan:${{ matrix.languages }}
+
+      # For JavaScript run analysis differently so we can ignore directories in the results
+      - name: Perform JavaScript CodeQL Analysis
+        if: matrix.languages == 'javascript'
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: /codeql-scan:${{ matrix.languages }}
+          upload: False
+          output: sarif-results
+
+      - name: Filter JavaScript SARIF Results
+        if: matrix.languages == 'javascript'
+        uses: advanced-security/filter-sarif@09a9626fe5e89584ba5ed115143975bfc59ac6a9
+        with:
+          patterns: |
+            -**/dist/**
+          input: sarif-results/javascript.sarif
+          output: sarif-results/javascript.sarif
+
+      - name: Upload JavaScript SARIF Results
+        if: matrix.languages == 'javascript'
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: sarif-results/javascript.sarif
