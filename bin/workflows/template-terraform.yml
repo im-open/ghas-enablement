@@ -12,25 +12,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Go to https://aquasecurity.github.io/tfsec/v1.28.1/checks/azure/ to see check expectations
       - name: Perform Terraform Scan
+        # Rules Lookup
+        # https://aquasecurity.github.io/tfsec/v1.28.1/checks/azure/
         uses: aquasecurity/tfsec-sarif-action@v0.1.4
         with:
-          sarif_file: tfsec.sarif
+          sarif_file: terraform.sarif
 
       - name: Upload Terraform SARIF results
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: tfsec.sarif
-
-      - name: Tfsec Rules Lookup Comment
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: 'To view tfsec checks go to [tfsec azure checks](https://aquasecurity.github.io/tfsec/v1.28.1/checks/azure/).'
-            })
+          sarif_file: terraform.sarif
