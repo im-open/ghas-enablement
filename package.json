@@ -24,6 +24,7 @@
     "@types/aws-lambda": "^8.10.110",
     "@types/debug": "^4.1.7",
     "@types/jest": "^29.4.0",
+    "@types/js-yaml": "^4.0.5",
     "@types/json-schema": "^7.0.11",
     "@types/mock-fs": "^4.13.1",
     "@types/node": "^18.11.18",
@@ -59,6 +60,7 @@
     "debug": "^4.3.4",
     "delay": "^5.0.0",
     "dotenv": "^16.0.3",
+    "js-yaml": "^4.1.0",
     "randomstring": "^1.2.3"
   }
 }

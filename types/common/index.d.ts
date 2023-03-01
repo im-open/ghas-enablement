@@ -150,3 +150,7 @@ export type CSharpCiYmlMetadata = {
 
 export type GraphQLQueryResponseData = GraphQLQueryResponseGetRepos[];
 export type GraphQLQueryResponse = [string, string, GraphQLQueryResponseData];
+
+export type Props = {
+  [key: string]: object;
+};

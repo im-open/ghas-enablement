@@ -4,13 +4,21 @@ import delay from "delay";
 import fs from "fs";
 import util from "util";
 
+// https://www.npmjs.com/package/js-yaml
+import yaml from "js-yaml";
+
 import { inform, error, platform, baseURL, destDir, tempDIR } from "./globals";
 
 import { generalCommands } from "./commands";
 
 import { execFile as ImportedExec } from "child_process";
 
-import { response, commands, CSharpCiYmlMetadata } from "../../types/common";
+import {
+  response,
+  commands,
+  CSharpCiYmlMetadata,
+  Props,
+} from "../../types/common";
 
 const execFile = util.promisify(ImportedExec);
 
@@ -49,6 +57,58 @@ const templateTf = loadTemplate("template-terraform.yml");
 const templateWorkflow = loadTemplate("template-workflow.yml");
 const templateDependency = loadTemplate("template-dependency.yml");
 
+const needsWindowsRunner = (fileContents: string): boolean => {
+  let requiresWindows = false;
+  const fileLines = fileContents.split("\n");
+  for (let lIndex = 0; lIndex < fileLines.length; lIndex++) {
+    const line = fileLines[lIndex];
+    if (line.includes("runs-on") && line.includes("windows-")) {
+      requiresWindows = true;
+    }
+  }
+  return requiresWindows;
+};
+
+const getPaddedDotnetPlaceholderChars = (): string => {
+  const fileLines = templateCs.split("\n");
+  let firstCharIndex = -1;
+  for (let index = 0; index < fileLines.length; index++) {
+    const line = fileLines[index];
+    firstCharIndex = line.indexOf("PLACEHOLDER_DOTNET_VERSION");
+    if (firstCharIndex > -1) {
+      break;
+    }
+  }
+  let padded = "";
+  for (let index = 0; index < firstCharIndex; index++) {
+    padded += " ";
+  }
+  return padded;
+};
+
+const getDotnetVersionFormatted = (env: Props): string => {
+  // 1. Get the version from env
+  // 2. Read line with PLACEHOLDER_DOTNET_VERSION and see how many spaces out it is.
+  // If there are more than 1 dotnet versions declared we will need multiple lines and each
+  // additional line will need to be aligned with the first one so we will add spaces
+  const rawVersion = env["DOTNET_VERSION"].toString().trim();
+  const newLine = "\n";
+  const versions = rawVersion.split(newLine);
+
+  if (versions.length == 1) {
+    return versions[0];
+  }
+
+  const padded = getPaddedDotnetPlaceholderChars();
+
+  let dotnetVersion = versions[0];
+  for (let index = 1; index < versions.length; index++) {
+    const currentVersion = versions[index];
+    dotnetVersion += `${newLine}${padded}${currentVersion}`;
+  }
+  return dotnetVersion;
+};
+
 const gatherCSharpCiYmlMetadata = (repoName: string): CSharpCiYmlMetadata => {
   const workflowsPath = `${destDir}/${tempDIR}/${repoName}/.github/workflows`;
   let dotnetVersion = "";
@@ -62,25 +122,15 @@ const gatherCSharpCiYmlMetadata = (repoName: string): CSharpCiYmlMetadata => {
       if (fileName.endsWith("ci.yml")) {
         const filePath = `${workflowsPath}/${fileName}`;
         const fileContents = fs.readFileSync(filePath).toString("utf-8");
-        const fileLines = fileContents.split("\n");
-        for (let lIndex = 0; lIndex < fileLines.length; lIndex++) {
-          const line = fileLines[lIndex];
-          if (line.includes("runs-on") && line.includes("windows-")) {
-            requiresWindows = true;
-          } else if (line.includes("DOTNET_VERSION:")) {
-            dotnetVersion = line
-              .replace("DOTNET_VERSION:", "")
-              .replaceAll('"', "")
-              .replaceAll("'", "")
-              .trim();
-          } else if (line.includes("SOLUTION_FILE:")) {
-            solutionFile = line
-              .replace("SOLUTION_FILE:", "")
-              .replaceAll('"', "")
-              .replaceAll("'", "")
-              .trim();
-          }
-        }
+
+        requiresWindows = needsWindowsRunner(fileContents);
+
+        const ymlJson = yaml.load(fileContents) as Props;
+
+        const env = ymlJson["env"] as Props;
+        solutionFile = env["SOLUTION_FILE"].toString();
+
+        dotnetVersion = getDotnetVersionFormatted(env);
       }
     }
   }
