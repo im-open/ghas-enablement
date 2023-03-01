@@ -199,79 +199,7 @@ This will run a script, and you should see output text appearing on your screen.
 
 After the script has run, please head to your `~/Desktop` directory and delete the `tempGitLocations` directory that has been automatically created.
 
-## Running this within a Codespace?
-
-There are some key considerations that you will need to put into place if you are running this script within a GitHub Codespace:
-
-1. You will need to add the following snippet to the `.devcontainer/devcontainer.json`:
-
-```json
-  "codespaces": {
-    "repositories": [
-      {
-        "name": "<ORG_NAME>/*",
-        "permissions": "write-all"
-      }
-    ]
-  }
-```
-
 The reason you need this within your `.devcontainer/devcontainer.json` file is the `GITHUB_TOKEN` tied to the Codespace will need to access other repositories within your organisation which this script may interact with. You will need to create a new Codespace **after** you have added the above and pushed it to your repository.
-
-You do not need to do the above if you are not running it from a Codespace.
-
-## Running as a (scheduled) GitHub workflow
-
-Since this tool uses a PAT it can be run unattended. You can see in the example
-below how you could run the tool in a scheduled GitHub workflow. Instead of using the `.env`
-file you can configure all the variables from the `.env.sample` directly as environment variables. This will allow you to
-(easily) make use of GitHub action secrets for the PAT or GitHub App credentials.
-
-```yaml
-on:
-  schedule:
-    - cron: "5 16 * * 1"
-
-env:
-  APP_ID: ${{ secrets.GHAS_ENABLEMENT_APP_ID }}
-  APP_CLIENT_ID: ${{ secrets.GHAS_ENABLEMENT_APP_CLIENT_ID }}
-  APP_CLIENT_SECRET: ${{ secrets.GHAS_ENABLEMENT_APP_CLIENT_SECRET }}
-  APP_PRIVATE_KEY: ${{ secrets.GHAS_ENABLEMENT_APP_PRIVATE_KEY }}
-  ENABLE_ON: "codescanning,secretscanning,pushprotection,dependabot,dependabotupdates"
-  DEBUG: "ghas:*"
-  CREATE_ISSUE: "false"
-  CREATE_DRAFT_PR: "true"
-  GHES: "false"
-  # Organization specific variables
-  APP_INSTALLATION_ID: "12345678"
-  GITHUB_ORG: "my-target-org"
-  PR_TITLE: "GHAS - Code Scanning or something like this"
-
-jobs:
-  enable-security-javascript:
-    runs-on: [self-hosted, ubuntu-20.04]
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          repository: NickLiffen/ghas-enablement
-      - name: Get dependencies and configure
-        run: |
-          yarn
-          git config --global user.name "ghas-enablement"
-          git config --global user.email "ghas.enablement@example.com"
-      - name: Enable security on organization (javascript)
-        run: |
-          npm run getRepos
-          npm run start
-        env:
-          LANGUAGE_TO_CHECK: "javascript"
-          TEMP_DIR: ${{ github.workspace }}
-```
-
-You can duplicate the last step for the other languages commonly used within your enterprise/organisation.
-If you didn't configure the tool as a GitHub App, you can remove all the `APP_*` and set `GITHUB_API_TOKEN` instead.
-Above we rely on the sample codeql file for javascript included in this repository. Alternatively you could add this workflow to a repository
-containing your customized codeql files and use those to overwrite the samples.
 
 # About Original Parent Repo
 
@@ -279,12 +207,8 @@ This repository was originally created as a fork of [ghas-enablement](https://gi
 
 ## Found an Issue?
 
-Create an issue, by going [here](https://github.com/NickLiffen/ghas-enablement/issues) and make it to `@nickliffen`. Key things to mention within your issue:
+If using this internally at WTW create an ITHD ticket and assign it to the Purple Team if not you can also go to [Issues](https://github.com/im-open/ghas-enablement/issues) and create one here. Be sure to include specific information like:
 
-- Windows, Linux, Codespaces or Mac
+- Windows, Linux, Mac
 - What version of NodeJS you are running.
 - Add any logs that appeared when you ran into the issue.
-
-## Want to Contribute?
-
-Great! Open an [issue](https://github.com/NickLiffen/ghas-enablement/issues), describe what feature you want to create and make sure to `@nickliffen`.
