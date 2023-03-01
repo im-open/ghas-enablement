@@ -67,14 +67,16 @@ export const worker = async (): Promise<unknown> => {
         }. The repo name is: ${repos[orgIndex].repos[repoIndex].repo}`
       );
       const {
-        repo: repoName,
-        enableDependabot,
-        enableDependabotUpdates,
-        enableSecretScanning,
-        enablePushProtection,
-        primaryLanguage,
+        createDraftPr,
         createIssue,
         enableCodeScanning,
+        enableDependabot,
+        enableDependabotUpdates,
+        enablePushProtection,
+        enableSecretScanning,
+        primaryLanguage,
+        prTitle,
+        repo: repoName,
       } = repos[orgIndex].repos[repoIndex];
 
       const [owner, repo] = repoName.split("/");
@@ -133,7 +135,9 @@ export const worker = async (): Promise<unknown> => {
             branchRef,
             owner,
             repo,
-            client
+            client,
+            createDraftPr,
+            prTitle
           );
           if (createIssue) {
             await enableIssueCreation(pullRequestURL, owner, repo, client);

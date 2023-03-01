@@ -1,13 +1,15 @@
 export type reposFile = {
   login: string;
   repos: {
+    createDraftPr: boolean;
+    createIssue: boolean;
+    enableCodeScanning: boolean;
     enableDependabot: boolean;
     enableDependabotUpdates: boolean;
-    enableSecretScanning: boolean;
-    enableCodeScanning: boolean;
     enablePushProtection: boolean;
-    createIssue: boolean;
+    enableSecretScanning: boolean;
     primaryLanguage: string;
+    prTitle: string;
     repo: string;
   }[];
 }[];
@@ -38,6 +40,8 @@ export type usersWriteAdminRepos = {
   createIssue: boolean;
   primaryLanguage: string;
   repo: string;
+  createDraftPr: boolean;
+  prTitle: string;
 };
 
 export type RateLimitOptions = {
