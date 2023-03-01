@@ -51,8 +51,8 @@ const templateDependency = loadTemplate("template-dependency.yml");
 
 const gatherCSharpCiYmlMetadata = (repoName: string): CSharpCiYmlMetadata => {
   const workflowsPath = `${destDir}/${tempDIR}/${repoName}/.github/workflows`;
-  let dotnetVersion: string = "";
-  let solutionFile: string = "";
+  let dotnetVersion = "";
+  let solutionFile = "";
   let requiresWindows = false;
 
   if (fs.existsSync(workflowsPath)) {
