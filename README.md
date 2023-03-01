@@ -139,12 +139,15 @@ Create a file called `repos.json` within the `./bin/` directory. This file needs
     "repos":
     [
       {
+        "createDraftPr": "boolean",
         "createIssue": "boolean",
         "enableCodeScanning": "boolean",
         "enableDependabot": "boolean",
         "enableDependabotUpdates": "boolean",
         "enablePushProtection": "boolean",
         "enableSecretScanning": "boolean",
+        "primaryLanguage": "csharp, hcl, javascript, powershell, python",
+        "prTitle": "string",
         "repo": "string <org/repo>",
       }
     ]
@@ -152,7 +155,37 @@ Create a file called `repos.json` within the `./bin/` directory. This file needs
 ]
 ```
 
-As you can see, the object takes a number of boolean keys: `createIssue`, `enableCodeScanning`, `enableDependabot`, `enableDependabotUpdates`, `enablePushProtection`, and `enableSecretScanning`, along with a single string key, namely, `repo`. Set `repo` to the name of the repository name where you would like to run this script. Set `enableDependabot` to `true` if you would also like to enable Dependabot Alerts on that repo; set it to `false` if you do not want to enable Dependabot Alerts. The same goes for `enableDependabotUpdates` for Dependabot Security Updates, `enableSecretScanning` for Secret Scanning, `pushprotection` for Secret Scanning push protection, and `enableCodeScanning` for Code Scanning (CodeQL). Finally set `createIssue` to `true` if you would like to create an issue on the repository with the text found in the `./src/utils/text/issueText.ts` file to supplement the PR.
+As you can see, the object takes a number of boolean keys:
+
+- `createDraftPr`
+  - Set to `true` if you would like Code Scanning PRs to be created in `Draft` mode
+- `createIssue`
+  - Set to `true` if you would like Github Issue created with PRs. See [Issue Text](./src/utils/text/issueText.ts) for file template.
+- `enableCodeScanning`
+  - Set to `true` if you would like to enable CodeQL, Terraform, and PowerShell scanning support
+- `enableDependabot`
+  - Set to `true` if you would like to enable Dependabot Alerts for the repo.
+- `enableDependabotUpdates`
+  - Set to `true` to get Dependabot Security Updates
+- `enablePushProtection`
+  - Set to `true` if you would like Push Protection enabled for the repo.
+- `enableSecretScanning`
+  - Set to `true` if you would like secret scanning enabled.
+- `primaryLanguage`
+  - Comma separated list of languages that the Github repo supports:
+    - javascript
+    - java
+    - go
+    - python
+    - cpp (C++)
+    - csharp (C#)
+    - ruby
+    - hcl (Terraform)
+    - powershell
+- `prTitle`
+  - The Title for the PR that is created for Code Scanning
+- `repo`
+  - The name of the repo in the following syntax: `org-name/repo-name`.
 
 **NOTE:** The account that generated the PAT needs to have `write` access or higher over any repository that you include within the `repos` key.
 
@@ -214,6 +247,7 @@ env:
   # Organization specific variables
   APP_INSTALLATION_ID: "12345678"
   GITHUB_ORG: "my-target-org"
+  PR_TITLE: "GHAS - Code Scanning or something like this"
 
 jobs:
   enable-security-javascript:
