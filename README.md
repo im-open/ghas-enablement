@@ -90,11 +90,15 @@ If you pick Dependabot Security Updates:
 
 10. **OPTIONAL**: If you are a GHES customer, then you will need to set the `GHES` env to `true` and then set `GHES_SERVER_BASE_URL` to the URL of your GHES instance. E.G `https://octodemo.com`.
 
-11. If you are enabling Code Scanning (CodeQL), check the `code-analysis.yml` file. This is a sample file; please configure this file to suit your repositories needs.
+11. **OPTIONAL**: If you would like the Pull Request, for Code Scanning, to be created as a [Draft](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests#draft-pull-requests) add `CREATE_DRAFT_PR` and set it to `true`. Otherwise the Pull Request will be set as `Ready for review`.
 
-12. Run `yarn install` or `npm install`, which will install the necessary dependencies.
+12. **OPTIONAL**: The title to give to the Code Scanning Pull Request. If this is empty `Github Advanced Security - Code Scanning` will be used.
 
-13. Run `yarn run build` or `npm run build`, which will create the JavaScript bundle from TypeScript.
+13. If you are enabling Code Scanning (CodeQL), check the `code-analysis.yml` file. This is a sample file; please configure this file to suit your repositories needs.
+
+14. Run `yarn install` or `npm install`, which will install the necessary dependencies.
+
+15. Run `yarn run build` or `npm run build`, which will create the JavaScript bundle from TypeScript.
 
 ## How to use?
 
@@ -205,6 +209,7 @@ env:
   ENABLE_ON: "codescanning,secretscanning,pushprotection,dependabot,dependabotupdates"
   DEBUG: "ghas:*"
   CREATE_ISSUE: "false"
+  CREATE_DRAFT_PR: "true"
   GHES: "false"
   # Organization specific variables
   APP_INSTALLATION_ID: "12345678"

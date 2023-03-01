@@ -1,4 +1,4 @@
-import { title, error, inform } from "./globals";
+import { error, inform } from "./globals";
 
 import { Octokit } from "@octokit/core";
 
@@ -12,7 +12,9 @@ export const createPullRequest = async (
   refs: string,
   owner: string,
   repo: string,
-  octokit: Octokit
+  octokit: Octokit,
+  draft: boolean,
+  title: string
 ): Promise<string> => {
   const regExpExecArray = /[^/]*$/.exec(refs);
   const head = regExpExecArray ? regExpExecArray[0] : "";
@@ -23,6 +25,7 @@ export const createPullRequest = async (
     head,
     base,
     title,
+    draft,
   } as createPullRequestParameters;
 
   try {
