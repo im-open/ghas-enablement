@@ -20,4 +20,7 @@ The ghas-enablement repo dynamically creates the workflow using the following sc
 
 ### PSScriptAnalyzer
 [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer) is a static code checker for PowerShell modules and scripts. PSScriptAnalyzer checks the quality of PowerShell code by running a [set of rules](https://github.com/PowerShell/PSScriptAnalyzer/blob/master/docs/Rules/README.md).
+
+## Additional Documentation
+In Confluence we have created [Github Advanced Security](https://kb.extendhealth.com/x/Uwn2Ow). This page will contains all the latest information about our GHAS implementation.
 `;
