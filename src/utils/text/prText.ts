@@ -22,5 +22,5 @@ The ghas-enablement repo dynamically creates the workflow using the following sc
 [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer) is a static code checker for PowerShell modules and scripts. PSScriptAnalyzer checks the quality of PowerShell code by running a [set of rules](https://github.com/PowerShell/PSScriptAnalyzer/blob/master/docs/Rules/README.md).
 
 ## Get Help
-If your team requires additional help with the generated workflow please open a [Help Request Ticket](${ithdTicketUrl}) and the Purple Team will reach out.
+If your team requires additional help with the generated workflow please open a [Help Request Ticket](${ithdTicketUrl}) and the Purple Team will reach out to provide assistance.
 `;
