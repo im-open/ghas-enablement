@@ -1,5 +1,9 @@
 # GitHub Advanced Security - Code Scanning, Secret Scanning & Dependabot Bulk Enablement Tooling
 
+## General Information
+
+For general information about our implementation of Github Advanced Security you can see our documentation in Confluence [here](https://kb.extendhealth.com/x/Uwn2Ow).
+
 ## Purpose
 
 The purpose of this tool is to help enable GitHub Advanced Security (GHAS) across multiple repositories in an automated way. There will be times when you need the ability to enable Code Scanning (CodeQL), Secret Scanning, Dependabot Alerts, and/or Dependabot Security Updates across various repositories, and you don't want to click buttons manually or drop a GitHub Workflow for CodeQL into every repository. Doing this is manual and painstaking. The purpose of this utility is to help automate these manual tasks.
