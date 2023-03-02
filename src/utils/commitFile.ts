@@ -119,7 +119,7 @@ const gatherCSharpCiYmlMetadata = (repoName: string): CSharpCiYmlMetadata => {
     const fileList = fs.readdirSync(workflowsPath);
     for (let fIndex = 0; fIndex < fileList.length; fIndex++) {
       const fileName = fileList[fIndex];
-      if (fileName.endsWith("ci.yml")) {
+      if (fileName.indexOf("dotnet-ci") > -1 || fileName.endsWith("ci.yml")) {
         const filePath = `${workflowsPath}/${fileName}`;
         const fileContents = fs.readFileSync(filePath).toString("utf-8");
 
