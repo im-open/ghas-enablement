@@ -150,6 +150,7 @@ Create a file called `repos.json` within the `./bin/` directory. This file needs
         "enableDependabotUpdates": "boolean",
         "enablePushProtection": "boolean",
         "enableSecretScanning": "boolean",
+        "ithdTicketUrl": "string",
         "primaryLanguage": "csv of repo languages that are supported",
         "prTitle": "string",
         "repo": "string <org/repo>",
@@ -175,6 +176,8 @@ As you can see, the object takes a number of boolean keys:
   - Set to `true` if you would like Push Protection enabled for the repo.
 - `enableSecretScanning`
   - Set to `true` if you would like secret scanning enabled.
+- `ithdTicketUrl`
+  - The ITHD Ticket Url for the ticket to be created when requesting help with the workflow.
 - `primaryLanguage`
   - Comma separated list of supported Code Scan languages that the repo has:
     - javascript
