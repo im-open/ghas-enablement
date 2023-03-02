@@ -1,4 +1,4 @@
-export const prText = (prTitle: string): string => `
+export const prText = (prTitle: string, ithdTicketUrl: string): string => `
 # ${prTitle}
 
 This Pull Request was produced using [ghas-enablement](https://github.com/im-open/ghas-enablement). It works by scanning repositories, in an organization, and creates a workflow based on the programming languages it uses. In addition to the Github README we have also created documentation in Confluence titled [Github Advanced Security](https://kb.extendhealth.com/x/Uwn2Ow).
@@ -20,4 +20,7 @@ The ghas-enablement repo dynamically creates the workflow using the following sc
 
 ### PSScriptAnalyzer
 [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer) is a static code checker for PowerShell modules and scripts. PSScriptAnalyzer checks the quality of PowerShell code by running a [set of rules](https://github.com/PowerShell/PSScriptAnalyzer/blob/master/docs/Rules/README.md).
+
+## Get Help
+If your team requires additional help with the generated workflow please open a [Help Request Ticket](${ithdTicketUrl}) and the Purple Team will reach out.
 `;

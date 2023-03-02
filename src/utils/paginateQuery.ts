@@ -142,6 +142,7 @@ const getRepositoryInOrganizationPaginate = async (
           prTitle:
             process.env.PR_TITLE || "Github Advanced Security - Code Scanning",
           repo: element.nameWithOwner,
+          ithdTicketUrl: process.env.ITHD_TICKET_URL || "",
         });
       }
     });

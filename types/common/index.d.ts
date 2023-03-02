@@ -8,6 +8,7 @@ export type reposFile = {
     enableDependabotUpdates: boolean;
     enablePushProtection: boolean;
     enableSecretScanning: boolean;
+    ithdTicketUrl: string;
     primaryLanguage: string;
     prTitle: string;
     repo: string;
@@ -42,6 +43,7 @@ export type usersWriteAdminRepos = {
   repo: string;
   createDraftPr: boolean;
   prTitle: string;
+  ithdTicketUrl: string;
 };
 
 export type RateLimitOptions = {

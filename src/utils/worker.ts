@@ -74,6 +74,7 @@ export const worker = async (): Promise<unknown> => {
         enableDependabotUpdates,
         enablePushProtection,
         enableSecretScanning,
+        ithdTicketUrl,
         primaryLanguage,
         prTitle,
         repo: repoName,
@@ -137,7 +138,8 @@ export const worker = async (): Promise<unknown> => {
             repo,
             client,
             createDraftPr,
-            prTitle
+            prTitle,
+            ithdTicketUrl
           );
           if (createIssue) {
             await enableIssueCreation(pullRequestURL, owner, repo, client);

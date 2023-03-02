@@ -16,11 +16,12 @@ export const createPullRequest = async (
   repo: string,
   octokit: Octokit,
   draft: boolean,
-  title: string
+  title: string,
+  ithdTicketUrl: string
 ): Promise<string> => {
   const regExpExecArray = /[^/]*$/.exec(refs);
   const head = regExpExecArray ? regExpExecArray[0] : "";
-  const body = prText(title);
+  const body = prText(title, ithdTicketUrl);
   const requestParams = {
     owner,
     repo,
