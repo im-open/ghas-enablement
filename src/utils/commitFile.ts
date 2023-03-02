@@ -122,11 +122,43 @@ const getDotnetInstallDir = (env: Props): string => {
   }
 };
 
-const gatherCSharpCiYmlMetadata = (repoName: string): CSharpCiYmlMetadata => {
+const getAuthGithubPackageOrgs = (
+  ymlJson: Props,
+  defaultOrgs: string
+): string => {
+  const jobs = ymlJson["jobs"] as Props;
+  const jobNames = Object.keys(jobs);
+  for (let jIndex = 0; jIndex < jobNames.length; jIndex++) {
+    const job = jobs[jobNames[jIndex]] as Props;
+    const steps = Object.values(job["steps"]);
+    for (let sIndex = 0; sIndex < steps.length; sIndex++) {
+      const step = steps[sIndex] as Props;
+      const rawUses = step["uses"];
+      if (rawUses == null) {
+        continue;
+      }
+      const uses = rawUses.toString().trim();
+      if (uses.includes("im-open/authenticate-with-gh-package-registries")) {
+        const stepWith = step["with"] as Props;
+        const rawOrgs = stepWith["orgs"];
+        if (rawOrgs != null) {
+          return rawOrgs.toString().trim();
+        }
+      }
+    }
+  }
+  return defaultOrgs;
+};
+
+const gatherCSharpCiYmlMetadata = (
+  repoName: string,
+  orgName: string
+): CSharpCiYmlMetadata => {
   const workflowsPath = `${destDir}/${tempDIR}/${repoName}/.github/workflows`;
   let dotnetVersion = "";
   let solutionFile = "";
   let dotnetInstallDir = "";
+  let packageOrgs = "";
   let requiresWindows = false;
 
   if (fs.existsSync(workflowsPath)) {
@@ -145,6 +177,7 @@ const gatherCSharpCiYmlMetadata = (repoName: string): CSharpCiYmlMetadata => {
         solutionFile = env["SOLUTION_FILE"].toString();
 
         dotnetInstallDir = getDotnetInstallDir(env);
+        packageOrgs = getAuthGithubPackageOrgs(ymlJson, orgName);
 
         dotnetVersion = getDotnetVersionFormatted(env);
         break;
@@ -156,6 +189,7 @@ const gatherCSharpCiYmlMetadata = (repoName: string): CSharpCiYmlMetadata => {
     dotnetVersion,
     solutionFile,
     requiresWindows,
+    packageOrgs,
   } as CSharpCiYmlMetadata;
   return result;
 };
@@ -169,8 +203,7 @@ const addWorkflowJob = (template: string, workflowParts: Array<string>) => {
 
 const createWorkflowFile = (
   primaryLanguage: string,
-  metadata: CSharpCiYmlMetadata,
-  orgName: string
+  metadata: CSharpCiYmlMetadata
 ): string => {
   const workflowParts: Array<string> = [];
   workflowParts.push(templateWorkflow);
@@ -190,7 +223,7 @@ const createWorkflowFile = (
         .replace(placeholderDotnetVersion, metadata.dotnetVersion)
         .replace(placeholderSolutionFile, metadata.solutionFile)
         .replace(placeholderDotnetInstallDir, metadata.dotnetInstallDir)
-        .replace(placeholderOrg, orgName);
+        .replace(placeholderOrg, metadata.packageOrgs);
       addWorkflowJob(templateCsWithReplacements, workflowParts);
     } else if (languageTrim == "hcl") {
       // Create terraform scan job
@@ -225,10 +258,9 @@ const createWorkflowFile = (
 
 const setupCodeAnalysisYml = (
   metadata: CSharpCiYmlMetadata,
-  orgName: string,
   primaryLanguage: string
 ): boolean => {
-  const workflowFinal = createWorkflowFile(primaryLanguage, metadata, orgName);
+  const workflowFinal = createWorkflowFile(primaryLanguage, metadata);
   try {
     const finalPath = `${binWorkflows}/${fileName}`;
     fs.writeFileSync(finalPath, workflowFinal);
@@ -310,9 +342,9 @@ export const commitFileMac = async (
     }
     if (gitCommand.args.includes("clone")) {
       // after cloning repo check if we will need a windows runner for code scan
-      const metadata = gatherCSharpCiYmlMetadata(repo);
+      const metadata = gatherCSharpCiYmlMetadata(repo, owner);
       // write code-analysis.yml with appropriate code scan runner type
-      setupCodeAnalysisYml(metadata, owner, primaryLanguage);
+      setupCodeAnalysisYml(metadata, primaryLanguage);
     }
   }
   return { status: 200, message: "success" };
