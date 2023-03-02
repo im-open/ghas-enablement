@@ -42,6 +42,7 @@ const loadTemplate = (templateName: string): string => {
 };
 
 const fileName = "code-analysis.yml";
+const notUsed = "NotUsed";
 const placeholderRunsOn = "PLACEHOLDER_RUNS_ON";
 const placeholderMatrixLangs = "PLACEHOLDER_MATRIX_LANGS";
 const placeholderDotnetInstallDir = "PLACEHOLDER_DOTNET_INSTALL_DIR";
@@ -114,7 +115,7 @@ const getDotnetVersionFormatted = (env: Props): string => {
 };
 
 const getDotnetInstallDir = (env: Props): string => {
-  let dotnetInstallDir = placeholderDotnetInstallDir;
+  let dotnetInstallDir = notUsed;
   try {
     dotnetInstallDir = env["DOTNET_INSTALL_DIR"].toString();
   } finally {
