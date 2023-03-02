@@ -138,11 +138,11 @@ const getRepositoryInOrganizationPaginate = async (
           ) as boolean,
           enablePushProtection: enable.includes("pushprotection") as boolean,
           enableSecretScanning: enable.includes("secretscanning") as boolean,
+          ithdTicketUrl: process.env.ITHD_TICKET_URL || "",
           primaryLanguage: element.primaryLanguage?.name || "",
           prTitle:
             process.env.PR_TITLE || "Github Advanced Security - Code Scanning",
           repo: element.nameWithOwner,
-          ithdTicketUrl: process.env.ITHD_TICKET_URL || "",
         });
       }
     });
