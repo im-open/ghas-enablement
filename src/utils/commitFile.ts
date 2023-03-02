@@ -92,9 +92,12 @@ const getDotnetVersionFormatted = (env: Props): string => {
   // 2. Read line with PLACEHOLDER_DOTNET_VERSION and see how many spaces out it is.
   // If there are more than 1 dotnet versions declared we will need multiple lines and each
   // additional line will need to be aligned with the first one so we will add spaces
-  const rawVersion = env["DOTNET_VERSION"].toString().trim();
+  const rawVersion = env["DOTNET_VERSION"];
+  if (rawVersion == null) {
+    return "6.0";
+  }
   const newLine = "\n";
-  const versions = rawVersion.split(newLine);
+  const versions = rawVersion.toString().split(newLine);
 
   if (versions.length == 1) {
     return versions[0];

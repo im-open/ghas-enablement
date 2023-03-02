@@ -122,7 +122,8 @@ export const worker = async (): Promise<unknown> => {
             branchRef,
             authToken
           );
-        } catch {
+        } catch (error) {
+          inform(`Error Details: ${error}`);
           inform(
             `File, code-analysis.yml, already exists. Nothing needed to commit.`
           );
