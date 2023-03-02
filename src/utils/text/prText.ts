@@ -1,7 +1,7 @@
 export const prText = (prTitle: string): string => `
 # ${prTitle}
 
-This Pull Request was produced using [ghas-enablement](https://github.com/im-open/ghas-enablement). It works by scanning repositories, in an organization, and creates a workflow based on the programming languages it uses.
+This Pull Request was produced using [ghas-enablement](https://github.com/im-open/ghas-enablement). It works by scanning repositories, in an organization, and creates a workflow based on the programming languages it uses. In addition to the Github README we have also created documentation in Confluence titled [Github Advanced Security](https://kb.extendhealth.com/x/Uwn2Ow).
 
 ## Github Advanced Security
 GitHub has many features that help you improve and maintain the quality of your code. Some of these are included in all plans, such as dependency graph and Dependabot alerts. Other security features require a [GitHub Advanced Security](https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security) license to run on repositories apart from public repositories on GitHub.com.
@@ -20,7 +20,4 @@ The ghas-enablement repo dynamically creates the workflow using the following sc
 
 ### PSScriptAnalyzer
 [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer) is a static code checker for PowerShell modules and scripts. PSScriptAnalyzer checks the quality of PowerShell code by running a [set of rules](https://github.com/PowerShell/PSScriptAnalyzer/blob/master/docs/Rules/README.md).
-
-## Additional Documentation
-In Confluence we have created [Github Advanced Security](https://kb.extendhealth.com/x/Uwn2Ow). This page will contains all the latest information about our GHAS implementation.
 `;
