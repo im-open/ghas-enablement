@@ -44,6 +44,7 @@ const loadTemplate = (templateName: string): string => {
 const fileName = "code-analysis.yml";
 const placeholderRunsOn = "PLACEHOLDER_RUNS_ON";
 const placeholderMatrixLangs = "PLACEHOLDER_MATRIX_LANGS";
+const placeholderDotnetInstallDir = "PLACEHOLDER_DOTNET_INSTALL_DIR";
 const placeholderDotnetVersion = "PLACEHOLDER_DOTNET_VERSION";
 const placeholderSolutionFile = "PLACEHOLDER_SOLUTION_FILE";
 const placeholderOrg = "PLACEHOLDER_ORG";
@@ -109,10 +110,20 @@ const getDotnetVersionFormatted = (env: Props): string => {
   return dotnetVersion;
 };
 
+const getDotnetInstallDir = (env: Props): string => {
+  let dotnetInstallDir = placeholderDotnetInstallDir;
+  try {
+    dotnetInstallDir = env["DOTNET_INSTALL_DIR"].toString();
+  } finally {
+    return dotnetInstallDir;
+  }
+};
+
 const gatherCSharpCiYmlMetadata = (repoName: string): CSharpCiYmlMetadata => {
   const workflowsPath = `${destDir}/${tempDIR}/${repoName}/.github/workflows`;
   let dotnetVersion = "";
   let solutionFile = "";
+  let dotnetInstallDir = "";
   let requiresWindows = false;
 
   if (fs.existsSync(workflowsPath)) {
@@ -130,12 +141,15 @@ const gatherCSharpCiYmlMetadata = (repoName: string): CSharpCiYmlMetadata => {
         const env = ymlJson["env"] as Props;
         solutionFile = env["SOLUTION_FILE"].toString();
 
+        dotnetInstallDir = getDotnetInstallDir(env);
+
         dotnetVersion = getDotnetVersionFormatted(env);
         break;
       }
     }
   }
   const result = {
+    dotnetInstallDir,
     dotnetVersion,
     solutionFile,
     requiresWindows,
@@ -172,6 +186,7 @@ const createWorkflowFile = (
         )
         .replace(placeholderDotnetVersion, metadata.dotnetVersion)
         .replace(placeholderSolutionFile, metadata.solutionFile)
+        .replace(placeholderDotnetInstallDir, metadata.dotnetInstallDir)
         .replace(placeholderOrg, orgName);
       addWorkflowJob(templateCsWithReplacements, workflowParts);
     } else if (languageTrim == "hcl") {

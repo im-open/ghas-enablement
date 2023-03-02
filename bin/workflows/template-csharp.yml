@@ -6,6 +6,7 @@ jobs:
       DOTNET_VERSION: |
         PLACEHOLDER_DOTNET_VERSION
       SOLUTION_FILE: PLACEHOLDER_SOLUTION_FILE
+      DOTNET_INSTALL_DIR: PLACEHOLDER_DOTNET_INSTALL_DIR
 
     permissions:
       actions: read # only required for workflows in private repositories
@@ -17,10 +18,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup .NET Core
+      - name: Setup .NET Core without Install Directory
+        if: env.DOTNET_INSTALL_DIR == 'PLACEHOLDER_DOTNET_INSTALL_DIR'
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup .NET Core with Install Directory
+        if: env.DOTNET_INSTALL_DIR != 'PLACEHOLDER_DOTNET_INSTALL_DIR'
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+        env:
+          DOTNET_INSTALL_DIR: ${{ env.DOTNET_INSTALL_DIR }}
 
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL

@@ -143,6 +143,7 @@ export type GraphQLQueryResponseGetRepos = {
 };
 
 export type CSharpCiYmlMetadata = {
+  dotnetInstallDir: string;
   dotnetVersion: string;
   solutionFile: string;
   requiresWindows: boolean;
