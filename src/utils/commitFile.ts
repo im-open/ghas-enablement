@@ -131,6 +131,7 @@ const gatherCSharpCiYmlMetadata = (repoName: string): CSharpCiYmlMetadata => {
         solutionFile = env["SOLUTION_FILE"].toString();
 
         dotnetVersion = getDotnetVersionFormatted(env);
+        break;
       }
     }
   }
