@@ -23,6 +23,5 @@ The ghas-enablement repo dynamically creates the workflow using the following sc
 
 ## Get Help
 If your team requires additional help with the generated workflow please open a [Help Request Ticket](${ithdTicketUrl}) and the Purple Team will reach out to provide assistance.
->**IMPORTANT**:
->Please include the URL to the PR you would like assistance with in the ticket.
+- **IMPORTANT**: Please include the URL to the PR you would like assistance with in the ticket.
 `;
