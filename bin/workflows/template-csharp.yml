@@ -25,7 +25,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Setup .NET Core with Install Directory
-        if: env.DOTNET_INSTALL_DIR != 'PLACEHOLDER_DOTNET_INSTALL_DIR'
+        if: env.DOTNET_INSTALL_DIR != 'NotUsed'
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
