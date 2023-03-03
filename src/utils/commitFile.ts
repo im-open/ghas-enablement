@@ -42,7 +42,7 @@ const loadTemplate = (templateName: string): string => {
 };
 
 const fileName = "code-analysis.yml";
-const defaultDotnetDir = "dotnet";
+const defaultDotnetDir = "dotnet-install";
 const placeholderRunsOn = "PLACEHOLDER_RUNS_ON";
 const placeholderMatrixLangs = "PLACEHOLDER_MATRIX_LANGS";
 const placeholderDotnetInstallDir = "PLACEHOLDER_DOTNET_INSTALL_DIR";
