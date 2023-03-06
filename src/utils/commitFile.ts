@@ -151,6 +151,23 @@ const getAuthGithubPackageOrgs = (
   return defaultOrgs;
 };
 
+const getSolutionFile = (env: Props, repoName: string): string => {
+  const rawValue = env["SOLUTION_FILE"];
+  if (rawValue != null) {
+    return rawValue.toString();
+  }
+  // Could not find env variable look in root of repo for .sln file and return that
+  const repoPath = `${destDir}/${tempDIR}/${repoName}`;
+  const fileList = fs.readdirSync(repoPath);
+  for (let index = 0; index < fileList.length; index++) {
+    const fileName = fileList[index];
+    if (fileName.endsWith(".sln")) {
+      return `./${fileName}`;
+    }
+  }
+  return "SolutionFileNotFound";
+};
+
 const gatherCSharpCiYmlMetadata = (
   repoName: string,
   orgName: string
@@ -175,12 +192,10 @@ const gatherCSharpCiYmlMetadata = (
         const ymlJson = yaml.load(fileContents) as Props;
 
         const env = ymlJson["env"] as Props;
-        solutionFile = env["SOLUTION_FILE"].toString();
-
         dotnetInstallDir = getDotnetInstallDir(env);
-        packageOrgs = getAuthGithubPackageOrgs(ymlJson, orgName);
-
         dotnetVersion = getDotnetVersionFormatted(env);
+        packageOrgs = getAuthGithubPackageOrgs(ymlJson, orgName);
+        solutionFile = getSolutionFile(env, repoName);
         break;
       }
     }
