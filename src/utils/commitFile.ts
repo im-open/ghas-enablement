@@ -43,6 +43,7 @@ const loadTemplate = (templateName: string): string => {
 
 const fileName = "code-analysis.yml";
 const defaultDotnetDir = "dotnet-install";
+const defaultDotnetVersion = "6.x";
 const placeholderRunsOn = "PLACEHOLDER_RUNS_ON";
 const placeholderMatrixLangs = "PLACEHOLDER_MATRIX_LANGS";
 const placeholderDotnetInstallDir = "PLACEHOLDER_DOTNET_INSTALL_DIR";
@@ -151,21 +152,34 @@ const getAuthGithubPackageOrgs = (
   return defaultOrgs;
 };
 
-const getSolutionFile = (env: Props, repoName: string): string => {
+const getSolutionFileFromFileSystem = (repoName: string): string => {
+  const attemptPaths = [
+    [`${destDir}/${tempDIR}/${repoName}`, ""],
+    [`${destDir}/${tempDIR}/${repoName}/src`, "/src"],
+  ];
+  for (let pathIndex = 0; pathIndex < attemptPaths.length; pathIndex++) {
+    const attemptPath = attemptPaths[pathIndex][0];
+    const attemptArg = attemptPaths[pathIndex][1];
+    if (!fs.existsSync(attemptPath)) {
+      continue;
+    }
+    const filesInPath = fs.readdirSync(attemptPath);
+    for (let fileIndex = 0; fileIndex < filesInPath.length; fileIndex++) {
+      const fileName = filesInPath[fileIndex];
+      if (fileName.endsWith(".sln")) {
+        return `.${attemptArg}/${fileName}`;
+      }
+    }
+  }
+  return "";
+};
+
+const getSolutionFile = (env: Props): string => {
   const rawValue = env["SOLUTION_FILE"];
   if (rawValue != null) {
     return rawValue.toString();
   }
-  // Could not find env variable look in root of repo for .sln file and return that
-  const repoPath = `${destDir}/${tempDIR}/${repoName}`;
-  const fileList = fs.readdirSync(repoPath);
-  for (let index = 0; index < fileList.length; index++) {
-    const fileName = fileList[index];
-    if (fileName.endsWith(".sln")) {
-      return `./${fileName}`;
-    }
-  }
-  return "SolutionFileNotFound";
+  return "";
 };
 
 const gatherCSharpCiYmlMetadata = (
@@ -173,10 +187,11 @@ const gatherCSharpCiYmlMetadata = (
   orgName: string
 ): CSharpCiYmlMetadata => {
   const workflowsPath = `${destDir}/${tempDIR}/${repoName}/.github/workflows`;
-  let dotnetVersion = "";
-  let solutionFile = "";
-  let dotnetInstallDir = "";
-  let packageOrgs = "";
+  // set default values and override them with ones in the workflow
+  let dotnetVersion = defaultDotnetVersion;
+  let solutionFile = getSolutionFileFromFileSystem(repoName);
+  let dotnetInstallDir = defaultDotnetDir;
+  let packageOrgs = orgName;
   let requiresWindows = false;
 
   if (fs.existsSync(workflowsPath)) {
@@ -195,11 +210,12 @@ const gatherCSharpCiYmlMetadata = (
         dotnetInstallDir = getDotnetInstallDir(env);
         dotnetVersion = getDotnetVersionFormatted(env);
         packageOrgs = getAuthGithubPackageOrgs(ymlJson, orgName);
-        solutionFile = getSolutionFile(env, repoName);
+        solutionFile = getSolutionFile(env);
         break;
       }
     }
   }
+
   const result = {
     dotnetInstallDir,
     dotnetVersion,
