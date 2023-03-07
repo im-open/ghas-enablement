@@ -17,7 +17,7 @@ import { auth as generateAuth } from "./clients";
 import { Octokit } from "@octokit/core";
 import { ref as branchRef, inform, reposFileLocation } from "./globals.js";
 import { repo, reposFile } from "../../types/common/index.js";
-import { getReposWithCodeScanning } from "./workflowSearch";
+import { getReposWithCodeScanning } from "./codeScannerSearch";
 import { searchCodeResponse } from "./octokitTypes.js";
 
 const hasAtLeastOneSupportedLanguage = (primaryLanguage: string): boolean => {
