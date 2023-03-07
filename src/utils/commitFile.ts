@@ -115,11 +115,11 @@ const getDotnetVersionFormatted = (env: Props): string => {
 };
 
 const getDotnetInstallDir = (env: Props): string => {
-  let dotnetInstallDir = defaultDotnetDir;
-  try {
-    dotnetInstallDir = env["DOTNET_INSTALL_DIR"].toString();
-  } finally {
-    return dotnetInstallDir;
+  const envDotnetInstallDir = env["DOTNET_INSTALL_DIR"];
+  if (envDotnetInstallDir != null) {
+    return envDotnetInstallDir.toString();
+  } else {
+    return defaultDotnetDir;
   }
 };
 
