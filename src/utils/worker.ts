@@ -37,6 +37,9 @@ const filterOutReposWithCodeScanning = (
   searchResult: searchCodeResponse,
   repos: Array<repo>
 ): Array<repo> => {
+  if (searchResult.data.items.length == 0) {
+    return repos;
+  }
   const filteredRepos: Array<repo> = [];
   for (let repoIndex = 0; repoIndex < repos.length; repoIndex++) {
     const repoItem = repos[repoIndex];
