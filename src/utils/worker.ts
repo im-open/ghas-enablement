@@ -16,7 +16,9 @@ import { auth as generateAuth } from "./clients";
 
 import { Octokit } from "@octokit/core";
 import { ref as branchRef, inform, reposFileLocation } from "./globals.js";
-import { reposFile } from "../../types/common/index.js";
+import { repo, reposFile } from "../../types/common/index.js";
+import { getReposWithCodeScanning } from "./workflowSearch";
+import { searchCodeResponse } from "./octokitTypes.js";
 
 const hasAtLeastOneSupportedLanguage = (primaryLanguage: string): boolean => {
   let hasAtLeastOneSupported = false;
@@ -29,6 +31,39 @@ const hasAtLeastOneSupportedLanguage = (primaryLanguage: string): boolean => {
     }
   }
   return hasAtLeastOneSupported;
+};
+
+const filterOutReposWithCodeScanning = (
+  searchResult: searchCodeResponse,
+  repos: Array<repo>
+): Array<repo> => {
+  const filteredRepos: Array<repo> = [];
+  for (let repoIndex = 0; repoIndex < repos.length; repoIndex++) {
+    const repoItem = repos[repoIndex];
+    const repoName = repoItem.repo;
+
+    let containsRepo = false;
+    for (
+      let searchIndex = 0;
+      searchIndex < searchResult.data.items.length;
+      searchIndex++
+    ) {
+      const searchRepo =
+        searchResult.data.items[searchIndex].repository.full_name;
+      if (searchRepo === repoName) {
+        containsRepo = true;
+        break;
+      }
+    }
+    if (containsRepo) {
+      inform(
+        `${repoName} already has Code Scanning enabled. Do not attempt to add it again.`
+      );
+    } else {
+      filteredRepos.push(repoItem);
+    }
+  }
+  return filteredRepos;
 };
 
 export const worker = async (): Promise<unknown> => {
@@ -55,16 +90,26 @@ export const worker = async (): Promise<unknown> => {
   }
 
   for (orgIndex = 0; orgIndex < repos.length; orgIndex++) {
+    const org = repos[orgIndex].login;
     inform(
       `Currently looping over: ${orgIndex + 1}/${
         repos.length
-      }. The org name is: ${repos[orgIndex].login}`
+      }. The org name is: ${org}`
     );
-    for (repoIndex = 0; repoIndex < repos[orgIndex].repos.length; repoIndex++) {
+    const allRepos = repos[orgIndex].repos;
+    const searchResults = await getReposWithCodeScanning(org, client);
+    // Compare repos with what was searched for.
+    // If the repo is in the results than we will filter it out
+    const filteredRepos = filterOutReposWithCodeScanning(
+      searchResults,
+      allRepos
+    );
+
+    for (repoIndex = 0; repoIndex < filteredRepos.length; repoIndex++) {
       inform(
         `Currently looping over: ${repoIndex + 1}/${
-          repos[orgIndex].repos.length
-        }. The repo name is: ${repos[orgIndex].repos[repoIndex].repo}`
+          filteredRepos.length
+        }. The repo name is: ${filteredRepos[repoIndex].repo}`
       );
       const {
         createDraftPr,
@@ -78,7 +123,7 @@ export const worker = async (): Promise<unknown> => {
         primaryLanguage,
         prTitle,
         repo: repoName,
-      } = repos[orgIndex].repos[repoIndex];
+      } = filteredRepos[repoIndex];
 
       const [owner, repo] = repoName.split("/");
 

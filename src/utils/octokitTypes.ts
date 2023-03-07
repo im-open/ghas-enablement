@@ -9,6 +9,10 @@ export interface Octokit {
   request: RequestInterface;
 }
 
+export type searchCodeParameters = Endpoints["GET /search/code"]["parameters"];
+
+export type searchCodeResponse = Endpoints["GET /search/code"]["response"];
+
 export type listDefaultBranchSHAParameters =
   Endpoints["GET /repos/{owner}/{repo}/git/ref/{ref}"]["parameters"];
 export type listDefaultBranchSHAResponse =

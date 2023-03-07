@@ -1,18 +1,20 @@
+export type repo = {
+  createDraftPr: boolean;
+  createIssue: boolean;
+  enableCodeScanning: boolean;
+  enableDependabot: boolean;
+  enableDependabotUpdates: boolean;
+  enablePushProtection: boolean;
+  enableSecretScanning: boolean;
+  ithdTicketUrl: string;
+  primaryLanguage: string;
+  prTitle: string;
+  repo: string;
+};
+
 export type reposFile = {
   login: string;
-  repos: {
-    createDraftPr: boolean;
-    createIssue: boolean;
-    enableCodeScanning: boolean;
-    enableDependabot: boolean;
-    enableDependabotUpdates: boolean;
-    enablePushProtection: boolean;
-    enableSecretScanning: boolean;
-    ithdTicketUrl: string;
-    primaryLanguage: string;
-    prTitle: string;
-    repo: string;
-  }[];
+  repos: repo[];
 }[];
 
 export type gitCommands = {
