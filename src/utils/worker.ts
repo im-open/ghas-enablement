@@ -91,6 +91,10 @@ export const worker = async (): Promise<unknown> => {
 
   for (orgIndex = 0; orgIndex < repos.length; orgIndex++) {
     const org = repos[orgIndex].login;
+    if (!org.startsWith("im")) {
+      inform(`Invalid org found: ${org}, skipping it...`);
+      continue;
+    }
     inform(
       `Currently looping over: ${orgIndex + 1}/${
         repos.length
