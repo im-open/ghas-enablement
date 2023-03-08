@@ -1,5 +1,6 @@
 /* eslint-disable no-alert, no-await-in-loop */
 
+import delay from "delay";
 import { readFileSync } from "node:fs";
 
 import { findDefaultBranch } from "./findDefaultBranch.js";
@@ -16,7 +17,10 @@ import { auth as generateAuth } from "./clients";
 
 import { Octokit } from "@octokit/core";
 import { ref as branchRef, inform, reposFileLocation } from "./globals.js";
-import { reposFile } from "../../types/common/index.js";
+import { repo, reposFile } from "../../types/common/index.js";
+import { getReposWithCodeScanning } from "./codeScannerSearch";
+import { searchCodeResponse } from "./octokitTypes.js";
+import { loadEnvValues } from "./envsLoader";
 
 const hasAtLeastOneSupportedLanguage = (primaryLanguage: string): boolean => {
   let hasAtLeastOneSupported = false;
@@ -31,6 +35,42 @@ const hasAtLeastOneSupportedLanguage = (primaryLanguage: string): boolean => {
   return hasAtLeastOneSupported;
 };
 
+const filterOutReposWithCodeScanning = (
+  searchResult: searchCodeResponse,
+  repos: Array<repo>
+): Array<repo> => {
+  if (searchResult.data.items.length == 0) {
+    return repos;
+  }
+  const filteredRepos: Array<repo> = [];
+  for (let repoIndex = 0; repoIndex < repos.length; repoIndex++) {
+    const repoItem = repos[repoIndex];
+    const repoName = repoItem.repo;
+
+    let containsRepo = false;
+    for (
+      let searchIndex = 0;
+      searchIndex < searchResult.data.items.length;
+      searchIndex++
+    ) {
+      const searchRepo =
+        searchResult.data.items[searchIndex].repository.full_name;
+      if (searchRepo === repoName) {
+        containsRepo = true;
+        break;
+      }
+    }
+    if (containsRepo) {
+      inform(
+        `${repoName} already has Code Scanning enabled. Do not attempt to add it again.`
+      );
+    } else {
+      filteredRepos.push(repoItem);
+    }
+  }
+  return filteredRepos;
+};
+
 export const worker = async (): Promise<unknown> => {
   let res;
   let orgIndex: number;
@@ -38,6 +78,7 @@ export const worker = async (): Promise<unknown> => {
   let repos: reposFile;
   let file: string;
   const client = (await octokit()) as Octokit;
+  const envs = loadEnvValues();
   // Read the repos.json file and get the list of repos using fs.readFileSync, handle errors, if empty file return error, if file exists and is not empty JSON.parse it and return the list of repos
   try {
     file = readFileSync(reposFileLocation, "utf8");
@@ -55,60 +96,63 @@ export const worker = async (): Promise<unknown> => {
   }
 
   for (orgIndex = 0; orgIndex < repos.length; orgIndex++) {
+    const org = repos[orgIndex].login;
+    if (!org.startsWith("im")) {
+      inform(`Invalid org found: ${org}, skipping it...`);
+      continue;
+    }
     inform(
       `Currently looping over: ${orgIndex + 1}/${
         repos.length
-      }. The org name is: ${repos[orgIndex].login}`
+      }. The org name is: ${org}`
     );
-    for (repoIndex = 0; repoIndex < repos[orgIndex].repos.length; repoIndex++) {
+    const allRepos = repos[orgIndex].repos;
+    const searchResults = await getReposWithCodeScanning(org, client);
+    // Compare repos with what was searched for.
+    // If the repo is in the results than we will filter it out
+    const filteredRepos = filterOutReposWithCodeScanning(
+      searchResults,
+      allRepos
+    );
+
+    for (repoIndex = 0; repoIndex < filteredRepos.length; repoIndex++) {
       inform(
         `Currently looping over: ${repoIndex + 1}/${
-          repos[orgIndex].repos.length
-        }. The repo name is: ${repos[orgIndex].repos[repoIndex].repo}`
+          filteredRepos.length
+        }. The repo name is: ${filteredRepos[repoIndex].repo}`
       );
-      const {
-        createDraftPr,
-        createIssue,
-        enableCodeScanning,
-        enableDependabot,
-        enableDependabotUpdates,
-        enablePushProtection,
-        enableSecretScanning,
-        primaryLanguage,
-        prTitle,
-        repo: repoName,
-      } = repos[orgIndex].repos[repoIndex];
+      const { primaryLanguage, repo: repoName } = filteredRepos[repoIndex];
 
       const [owner, repo] = repoName.split("/");
 
       // If Code Scanning or Secret Scanning need to be enabled, let's go ahead and enable GHAS first
-      enableCodeScanning || enableSecretScanning
+      envs.enableCodeScanning || envs.enableSecretScanning
         ? await enableGHAS(owner, repo, client)
         : null;
 
       // If they want to enable Dependabot, and they are NOT on GHES (as that currently isn't GA yet), enable Dependabot
-      enableDependabot && process.env.GHES != "true"
+      envs.enableDependabot && process.env.GHES != "true"
         ? await enableDependabotAlerts(owner, repo, client)
         : null;
 
       // If they want to enable Dependabot Security Updates, and they are NOT on GHES (as that currently isn't GA yet), enable Dependabot Security Updates
-      enableDependabotUpdates && process.env.GHES != "true"
+      envs.enableDependabotUpdates && process.env.GHES != "true"
         ? await enableDependabotFixes(owner, repo, client)
         : null;
 
       // Kick off the process for enabling Secret Scanning
-      enableSecretScanning
+      envs.enableSecretScanning
         ? await enableSecretScanningAlerts(
             owner,
             repo,
             client,
-            enablePushProtection
+            envs.enablePushProtection
           )
         : null;
 
       // Kick off the process for enabling Code Scanning only if it is set to be enabled AND the primary language for the repo exists. If it doesn't exist that means CodeQL doesn't support it.
       if (
-        enableCodeScanning &&
+        envs.enableCodeScanning &&
         hasAtLeastOneSupportedLanguage(primaryLanguage)
       ) {
         const authToken = (await generateAuth()) as string;
@@ -121,7 +165,8 @@ export const worker = async (): Promise<unknown> => {
             branchRef,
             authToken
           );
-        } catch {
+        } catch (error) {
+          inform(`Error Details: ${error}`);
           inform(
             `File, code-analysis.yml, already exists. Nothing needed to commit.`
           );
@@ -136,14 +181,22 @@ export const worker = async (): Promise<unknown> => {
             owner,
             repo,
             client,
-            createDraftPr,
-            prTitle
+            envs.createDraftPr,
+            envs.prTitle,
+            envs.ithdTicketUrl
           );
-          if (createIssue) {
+          if (envs.createIssue) {
             await enableIssueCreation(pullRequestURL, owner, repo, client);
           }
           await writeToFile(pullRequestURL);
-          // }
+
+          const prWaitTimeMs = envs.prWaitSecs * 1000;
+          // after a Pull Request is created wait about a minute.
+          // This wait will allow the self hosted runners to continue to be
+          // used by teams without interruption
+          inform(`Wait ${envs.prWaitSecs} seconds before continuing...`);
+          await delay(prWaitTimeMs);
+          inform(`Wait is over! Continue to next repo.`);
         }
       }
     }

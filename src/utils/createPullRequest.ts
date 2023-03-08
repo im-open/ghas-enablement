@@ -2,6 +2,8 @@ import { error, inform } from "./globals";
 
 import { Octokit } from "@octokit/core";
 
+import { prText } from "./text/prText";
+
 import {
   createPullRequestParameters,
   createPullRequestResponse,
@@ -14,11 +16,12 @@ export const createPullRequest = async (
   repo: string,
   octokit: Octokit,
   draft: boolean,
-  title: string
+  title: string,
+  ithdTicketUrl: string
 ): Promise<string> => {
   const regExpExecArray = /[^/]*$/.exec(refs);
   const head = regExpExecArray ? regExpExecArray[0] : "";
-
+  const body = prText(title, ithdTicketUrl);
   const requestParams = {
     owner,
     repo,
@@ -26,6 +29,7 @@ export const createPullRequest = async (
     base,
     title,
     draft,
+    body,
   } as createPullRequestParameters;
 
   try {

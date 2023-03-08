@@ -1,4 +1,4 @@
-name: "Run Code Scans"
+name: GHAS Code Scans
 # https://github.com/github/codeql-action
 
 on:

@@ -1,5 +1,9 @@
 # GitHub Advanced Security - Code Scanning, Secret Scanning & Dependabot Bulk Enablement Tooling
 
+## General Information
+
+For general information about our implementation of Github Advanced Security you can see our documentation in Confluence [here](https://kb.extendhealth.com/x/Uwn2Ow).
+
 ## Purpose
 
 The purpose of this tool is to help enable GitHub Advanced Security (GHAS) across multiple repositories in an automated way. There will be times when you need the ability to enable Code Scanning (CodeQL), Secret Scanning, Dependabot Alerts, and/or Dependabot Security Updates across various repositories, and you don't want to click buttons manually or drop a GitHub Workflow for CodeQL into every repository. Doing this is manual and painstaking. The purpose of this utility is to help automate these manual tasks.
@@ -82,6 +86,8 @@ If you pick Dependabot Security Updates:
 
 1.  Update the `LANGUAGE_TO_CHECK` value found within the `.env`. Remove the `XXXX` and replace that with the language you would like to use as a filter when collecting repositories. **Note**: Please make sure these are lowercase values, such as: `javascript`, `python`, `go`, `ruby`, `hcl`, `powershell`, etc.
 
+1.  Update the `ITHD_TICKET_URL` value with the url for the ITHD ticket that can be created by teams when they are having trouble getting the Github Advanced Security workflow running successfully. The URL should be to the ticket type that is sent to the Purple Team.
+
 1.  Decide what you want to enable. Update the `ENABLE_ON` value to choose what you want to enable on the repositories found within the `repos.json`. This can be one or multiple values. If you are enabling just code scanning (CodeQL) you will need to set `ENABLE_ON=codescanning`, if you are enabling everything, you will need to set `ENABLE_ON=codescanning,secretscanning,pushprotection,dependabot,dependabotupdates`. You can pick one, two or three. The format is a comma-seperated list.
 
 1.  **OPTIONAL**: Update the `CREATE_ISSUE` value to `true/false` depending on if you would like to create an issue explaining the purpose of the PR. We recommend this, as it will help explain why the PR was created; and give some context. However, this is optional. The text which is in the issue can be modified and found here: `./src/utils/text/`.
@@ -137,15 +143,7 @@ Create a file called `repos.json` within the `./bin/` directory. This file needs
     "repos":
     [
       {
-        "createDraftPr": "boolean",
-        "createIssue": "boolean",
-        "enableCodeScanning": "boolean",
-        "enableDependabot": "boolean",
-        "enableDependabotUpdates": "boolean",
-        "enablePushProtection": "boolean",
-        "enableSecretScanning": "boolean",
         "primaryLanguage": "csv of repo languages that are supported",
-        "prTitle": "string",
         "repo": "string <org/repo>",
       }
     ]
@@ -155,20 +153,6 @@ Create a file called `repos.json` within the `./bin/` directory. This file needs
 
 As you can see, the object takes a number of boolean keys:
 
-- `createDraftPr`
-  - Set to `true` if you would like Code Scanning PRs to be created in `Draft` mode
-- `createIssue`
-  - Set to `true` if you would like Github Issue created with PRs. See [Issue Text](./src/utils/text/issueText.ts) for file template.
-- `enableCodeScanning`
-  - Set to `true` if you would like to enable CodeQL, Terraform, and PowerShell scanning support
-- `enableDependabot`
-  - Set to `true` if you would like to enable Dependabot Alerts for the repo.
-- `enableDependabotUpdates`
-  - Set to `true` to get Dependabot Security Updates
-- `enablePushProtection`
-  - Set to `true` if you would like Push Protection enabled for the repo.
-- `enableSecretScanning`
-  - Set to `true` if you would like secret scanning enabled.
 - `primaryLanguage`
   - Comma separated list of supported Code Scan languages that the repo has:
     - javascript
@@ -180,8 +164,6 @@ As you can see, the object takes a number of boolean keys:
     - ruby
     - hcl (Terraform)
     - powershell
-- `prTitle`
-  - The Title for the PR that is created for Code Scanning
 - `repo`
   - The name of the repo in the following syntax: `org-name/repo-name`.
 
