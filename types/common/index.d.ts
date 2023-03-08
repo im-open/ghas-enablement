@@ -1,14 +1,5 @@
 export type repo = {
-  createDraftPr: boolean;
-  createIssue: boolean;
-  enableCodeScanning: boolean;
-  enableDependabot: boolean;
-  enableDependabotUpdates: boolean;
-  enablePushProtection: boolean;
-  enableSecretScanning: boolean;
-  ithdTicketUrl: string;
   primaryLanguage: string;
-  prTitle: string;
   repo: string;
 };
 
@@ -35,17 +26,8 @@ export type config = {
 };
 
 export type usersWriteAdminRepos = {
-  enableDependabot: boolean;
-  enableDependabotUpdates: boolean;
-  enableSecretScanning: boolean;
-  enableCodeScanning: boolean;
-  enablePushProtection: boolean;
-  createIssue: boolean;
   primaryLanguage: string;
   repo: string;
-  createDraftPr: boolean;
-  prTitle: string;
-  ithdTicketUrl: string;
 };
 
 export type RateLimitOptions = {
@@ -159,4 +141,17 @@ export type GraphQLQueryResponse = [string, string, GraphQLQueryResponseData];
 
 export type Props = {
   [key: string]: object;
+};
+
+export type EnvValues = {
+  createDraftPr: boolean;
+  createIssue: boolean;
+  enableCodeScanning: boolean;
+  enableDependabot: boolean;
+  enableDependabotUpdates: boolean;
+  enablePushProtection: boolean;
+  enableSecretScanning: boolean;
+  ithdTicketUrl: string;
+  prTitle: string;
+  prWaitSecs: number;
 };

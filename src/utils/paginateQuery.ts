@@ -127,21 +127,7 @@ const getRepositoryInOrganizationPaginate = async (
         element.primaryLanguage.name != ""
       ) {
         return paginatedData.push({
-          createDraftPr:
-            process.env.CREATE_DRAFT_PR === "true" ? true : (false as boolean),
-          createIssue:
-            process.env.CREATE_ISSUE === "true" ? true : (false as boolean),
-          enableCodeScanning: enable.includes("codescanning") as boolean,
-          enableDependabot: enable.includes("dependabot") as boolean,
-          enableDependabotUpdates: enable.includes(
-            "dependabotupdates"
-          ) as boolean,
-          enablePushProtection: enable.includes("pushprotection") as boolean,
-          enableSecretScanning: enable.includes("secretscanning") as boolean,
-          ithdTicketUrl: process.env.ITHD_TICKET_URL || "",
           primaryLanguage: element.primaryLanguage?.name || "",
-          prTitle:
-            process.env.PR_TITLE || "Github Advanced Security - Code Scanning",
           repo: element.nameWithOwner,
         });
       }
