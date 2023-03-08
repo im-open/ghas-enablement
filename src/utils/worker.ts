@@ -1,5 +1,6 @@
 /* eslint-disable no-alert, no-await-in-loop */
 
+import delay from "delay";
 import { readFileSync } from "node:fs";
 
 import { findDefaultBranch } from "./findDefaultBranch.js";
@@ -198,7 +199,14 @@ export const worker = async (): Promise<unknown> => {
             await enableIssueCreation(pullRequestURL, owner, repo, client);
           }
           await writeToFile(pullRequestURL);
-          // }
+
+          const wait65seconds = 65000;
+          // after a Pull Request is created wait about a minute.
+          // This wait will allow the self hosted runners to continue to be
+          // used by teams without interruption
+          inform(`Wait ${wait65seconds} seconds before continuing...`);
+          await delay(wait65seconds);
+          inform(`Wait is over! Continue to next repo.`);
         }
       }
     }
