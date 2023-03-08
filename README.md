@@ -143,16 +143,7 @@ Create a file called `repos.json` within the `./bin/` directory. This file needs
     "repos":
     [
       {
-        "createDraftPr": "boolean",
-        "createIssue": "boolean",
-        "enableCodeScanning": "boolean",
-        "enableDependabot": "boolean",
-        "enableDependabotUpdates": "boolean",
-        "enablePushProtection": "boolean",
-        "enableSecretScanning": "boolean",
-        "ithdTicketUrl": "string",
         "primaryLanguage": "csv of repo languages that are supported",
-        "prTitle": "string",
         "repo": "string <org/repo>",
       }
     ]
@@ -162,22 +153,6 @@ Create a file called `repos.json` within the `./bin/` directory. This file needs
 
 As you can see, the object takes a number of boolean keys:
 
-- `createDraftPr`
-  - Set to `true` if you would like Code Scanning PRs to be created in `Draft` mode
-- `createIssue`
-  - Set to `true` if you would like Github Issue created with PRs. See [Issue Text](./src/utils/text/issueText.ts) for file template.
-- `enableCodeScanning`
-  - Set to `true` if you would like to enable CodeQL, Terraform, and PowerShell scanning support
-- `enableDependabot`
-  - Set to `true` if you would like to enable Dependabot Alerts for the repo.
-- `enableDependabotUpdates`
-  - Set to `true` to get Dependabot Security Updates
-- `enablePushProtection`
-  - Set to `true` if you would like Push Protection enabled for the repo.
-- `enableSecretScanning`
-  - Set to `true` if you would like secret scanning enabled.
-- `ithdTicketUrl`
-  - The ITHD Ticket Url for the ticket to be created when requesting help with the workflow.
 - `primaryLanguage`
   - Comma separated list of supported Code Scan languages that the repo has:
     - javascript
@@ -189,8 +164,6 @@ As you can see, the object takes a number of boolean keys:
     - ruby
     - hcl (Terraform)
     - powershell
-- `prTitle`
-  - The Title for the PR that is created for Code Scanning
 - `repo`
   - The name of the repo in the following syntax: `org-name/repo-name`.
 
