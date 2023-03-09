@@ -121,7 +121,15 @@ export const worker = async (): Promise<unknown> => {
           filteredRepos.length
         }. The repo name is: ${filteredRepos[repoIndex].repo}`
       );
-      const { primaryLanguage, repo: repoName } = filteredRepos[repoIndex];
+      const {
+        primaryLanguage,
+        repo: repoName,
+        runInfo,
+      } = filteredRepos[repoIndex];
+
+      if (runInfo != "") {
+        inform(runInfo);
+      }
 
       const [owner, repo] = repoName.split("/");
 
