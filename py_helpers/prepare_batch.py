@@ -2,8 +2,9 @@ import os
 
 from datetime import date
 from shared.path_helper import PathHelper
+from shared.runnable_class import RunnableClass
 
-class PrepareBatch:
+class PrepareBatch(RunnableClass):
     def __init__(self) -> None:
         self.batch_lookups = self._create_batch_lookups()
 

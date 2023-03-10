@@ -10,9 +10,10 @@ from shared.env_loader import EnvLoaderHelper
 from shared.org_load_param import OrgLoadParam
 from shared.path_helper import PathHelper, FileName
 from shared.repo_lang_param import RepoLangParam
+from shared.runnable_class import RunnableClass
 from typing import Tuple
 
-class ReposBatcher:
+class ReposBatcher(RunnableClass):
     def __init__(self) -> None:
         self.envs = EnvLoaderHelper.load_envs()
         self.not_supported_prefix = "not-supported-"

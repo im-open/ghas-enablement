@@ -3,8 +3,9 @@ import os
 
 from datetime import date
 from shared.path_helper import PathHelper, FileName
+from shared.runnable_class import RunnableClass
 
-class PrepareRepo:
+class PrepareRepo(RunnableClass):
     def __init__(self) -> None:
         self.org_repo_lang_results = self._load_results()
 

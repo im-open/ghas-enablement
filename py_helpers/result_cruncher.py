@@ -1,7 +1,9 @@
 import json
 import os
 
-class ResultCruncher:
+from shared.runnable_class import RunnableClass
+
+class ResultCruncher(RunnableClass):
     def _has_at_least_one_supported(self, languages):
         has_one = False
         for raw_language in languages:
