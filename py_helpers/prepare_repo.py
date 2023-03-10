@@ -2,24 +2,25 @@ import json
 import os
 
 from datetime import date
+from shared.path_helper import PathHelper, FileName
 
 class PrepareRepo:
     def __init__(self) -> None:
         self.org_repo_lang_results = self._load_results()
-        self.bin_repos = os.path.join("bin", "repos.json")
 
 
     def run(self):
         repo_name = input(f"Please enter the name of the repo to import?{os.linesep}").lower().strip()
         repos_result = self._find_repo(repo_name)
+        bin_repos = PathHelper.get_bin_repos()
 
         if not repos_result:
             print(f"Could not find {repo_name}...")
 
-        print(f"Save to {self.bin_repos}")
+        print(f"Save to {bin_repos}")
 
         repos_str = json.dumps(repos_result, indent=3, sort_keys=True)
-        with open(self.bin_repos, "w") as writer:
+        with open(bin_repos, "w") as writer:
             writer.write(repos_str)
 
         print("DONE!")
@@ -28,8 +29,8 @@ class PrepareRepo:
     def _find_repo(self, repo_name_input: str) -> dict:
         print(f"Does {repo_name_input} exist in any github orgs?")
         results = []
-        for org_name in self.org_repo_lang_results:
-            org_item = self.org_repo_lang_results[org_name]
+        for org_name in self.org_repo_lang_results["orgs"]:
+            org_item = self.org_repo_lang_results["orgs"][org_name]
             result = {
                 "login": org_name,
                 "repos": []
@@ -50,9 +51,7 @@ class PrepareRepo:
 
 
     def _load_results(self) -> dict:
-        date_str = date.today().strftime("%Y-%m-%d")
-        path_supported_repos = os.path.join("repo-results", date_str, "all-supported-repos.json")
-
+        path_supported_repos = PathHelper.get_file_name(FileName.SUPPORTED)
         with open(path_supported_repos, "r") as reader:
             return json.load(reader)
 

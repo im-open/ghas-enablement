@@ -8,6 +8,7 @@ from datetime import date
 from requests import Response
 from shared.env_loader import EnvLoaderHelper
 from shared.org_load_param import OrgLoadParam
+from shared.path_helper import PathHelper, FileName
 from shared.repo_lang_param import RepoLangParam
 from typing import Tuple
 
@@ -30,24 +31,11 @@ class ReposBatcher:
             "powershell": "powershell",
         }
 
-        self.source_dir = "repo-results"
-        self._create_dir(self.source_dir)
-
-        self.target_dir = os.path.join(self.source_dir, "repo-increments")
-        self._create_dir(self.target_dir)
-
-        self.date_dir = os.path.join(self.source_dir, date.today().strftime("%Y-%m-%d"))
-        self._create_dir(self.date_dir)
-
-        self.batch_dir = os.path.join(self.date_dir, "batches")
-        self._create_dir(self.batch_dir)
-
-        self._cleanup_increments_dir(self.batch_dir)
-
-        self.path_org_repos = os.path.join(self.date_dir, "all-org-repo-results.json")
-        self.path_org_repo_langs = os.path.join(self.date_dir, "all-org-repo-lang-results.json")
-        self.path_unsupported_repos = os.path.join(self.date_dir, "all-unsupported-repos.json")
-        self.path_supported_repos = os.path.join(self.date_dir, "all-supported-repos.json")
+        self._cleanup_increments_dir(PathHelper.get_batch_dir())
+        self.path_org_repos = PathHelper.get_file_name(FileName.ORG_REPO)
+        self.path_org_repo_langs = PathHelper.get_file_name(FileName.ORG_REPO_LANG)
+        self.path_unsupported_repos = PathHelper.get_file_name(FileName.UNSUPPORTED)
+        self.path_supported_repos = PathHelper.get_file_name(FileName.SUPPORTED)
 
 
     def run(self):
@@ -89,8 +77,8 @@ class ReposBatcher:
 
                     supported_repos["orgs"][org_name][repo_name.lower()] = repo_item
 
-        self._save_results(unsupported_repos, self.path_unsupported_repos)
-        self._save_results(supported_repos, self.path_supported_repos)
+        self._save_results(unsupported_repos, PathHelper.get_file_name(FileName.UNSUPPORTED))
+        self._save_results(supported_repos, PathHelper.get_file_name(FileName.SUPPORTED))
         return supported_repos
 
 
@@ -101,7 +89,7 @@ class ReposBatcher:
 
 
     def _get_all_together_results(self) -> dict:
-        existing = self._load_from_file_if_exists(self.path_org_repo_langs)
+        existing = self._load_from_file_if_exists(PathHelper.get_file_name(FileName.ORG_REPO_LANG))
         if existing:
             return existing
 
@@ -128,7 +116,7 @@ class ReposBatcher:
                     "repo": f"{org}/{repo}"
                 }
 
-            self._save_results(org_repo_lang_results, self.path_org_repo_langs)
+            self._save_results(org_repo_lang_results, PathHelper.get_file_name(FileName.ORG_REPO_LANG))
             return org_repo_lang_results
 
 
@@ -164,13 +152,13 @@ class ReposBatcher:
 
 
     def _load_orgs_for_batch(self) -> dict:
-        existing = self._load_from_file_if_exists(self.path_org_repos)
+        existing = self._load_from_file_if_exists(PathHelper.get_file_name(FileName.ORG_REPO))
         if existing:
             return existing
 
         params = []
         for org in self.envs.batch_orgs:
-            params.append(OrgLoadParam(self.envs.github_pat, org, self.date_dir))
+            params.append(OrgLoadParam(self.envs.github_pat, org))
 
         pool = multiprocessing.Pool()
         all_results = pool.map(self._load_org, params)
@@ -184,7 +172,7 @@ class ReposBatcher:
 
                 parsed_results[org_name].append(repo_name)
 
-        self._save_results(parsed_results, self.path_org_repos)
+        self._save_results(parsed_results, PathHelper.get_file_name(FileName.ORG_REPO))
         return parsed_results
 
 
@@ -196,18 +184,9 @@ class ReposBatcher:
         return None
 
 
-    def _get_path_org_repos(self, org: str, date_dir: str) -> str:
-        org_repos_path = os.path.join(date_dir, f"{org}-repos.json")
-        return org_repos_path
-
-
-    def _get_path_batch(self, batch_number: int) -> str:
-        return os.path.join(self.batch_dir, f"repos({batch_number}).json")
-
-
     def _load_org(self, param: OrgLoadParam) -> Tuple[str, dict]:
         print(f"Load {param.org} Repos...")
-        existing = self._load_from_file_if_exists(self._get_path_org_repos(param.org, param.date_dir))
+        existing = self._load_from_file_if_exists(PathHelper.get_org_repos(param.org))
         if existing:
             return param.org, existing
 
@@ -228,7 +207,7 @@ class ReposBatcher:
             next_url = self._get_next_url(response)
             org_results.extend(response.json())
 
-        self._save_results(org_results, self._get_path_org_repos(param.org, param.date_dir))
+        self._save_results(org_results, PathHelper.get_org_repos(param.org))
         return param.org, org_results
 
 
@@ -284,7 +263,7 @@ class ReposBatcher:
                 repos_in_batch_count += 1
 
                 if repos_in_batch_count % self.repo_limit == 0:
-                    self._save_results(batches, self._get_path_batch(batch_count))
+                    self._save_results(batches, PathHelper.get_batch_number(batch_count))
 
                     # reset variables
                     batch_count += 1 # increment this one
@@ -296,7 +275,7 @@ class ReposBatcher:
                     batches.append(current_org)
 
         if batches:
-            self._save_results(batches, self._get_path_batch(batch_count))
+            self._save_results(batches, PathHelper.get_batch_number(batch_count))
 
 
     def _save_results(self, results: dict, path: str):

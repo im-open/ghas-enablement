@@ -1,11 +1,11 @@
 import os
 
 from datetime import date
+from shared.path_helper import PathHelper
 
 class PrepareBatch:
     def __init__(self) -> None:
         self.batch_lookups = self._create_batch_lookups()
-        self.bin_repos = os.path.join("bin", "repos.json")
 
 
     def run(self):
@@ -15,6 +15,7 @@ class PrepareBatch:
         print(f"Received {batch_number}")
         if batch_number not in self.batch_lookups:
             print(f"ERROR: Could not find batch number {batch_number}")
+            return
 
 
         batch_path = self.batch_lookups[batch_number]
@@ -23,8 +24,9 @@ class PrepareBatch:
         with open(batch_path, "r") as reader:
             batch_contents = reader.read()
 
-        print(f"Write to {self.bin_repos}...")
-        with open(self.bin_repos, "w") as writer:
+        bin_repos = PathHelper.get_bin_repos()
+        print(f"Write to {bin_repos}...")
+        with open(bin_repos, "w") as writer:
             writer.write(batch_contents)
 
         print("DONE!")
@@ -32,8 +34,7 @@ class PrepareBatch:
 
     def _create_batch_lookups(self):
         batch_lookups = {}
-        date_str = date.today().strftime("%Y-%m-%d")
-        path_batches = os.path.join("repo-results", date_str, "batches")
+        path_batches = PathHelper.get_batch_dir()
 
         files = os.listdir(path_batches)
         for file_name in files:

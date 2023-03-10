@@ -1,5 +1,5 @@
 class OrgLoadParam:
-    def __init__(self, pat: str, org: str, date_dir: str) -> None:
+    def __init__(self, pat: str, org: str) -> None:
         self.api_url = f"https://api.github.com/orgs/{org}/repos"
         self.headers = {
             "Accept": "application/vnd.github+json",
@@ -8,4 +8,3 @@ class OrgLoadParam:
         }
         self.org = org
         self.sleep_time_secs = 0.25
-        self.date_dir = date_dir
