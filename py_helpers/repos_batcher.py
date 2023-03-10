@@ -9,19 +9,26 @@ from requests import Response
 from shared.env_loader import EnvLoaderHelper
 from shared.org_load_param import OrgLoadParam
 from shared.repo_lang_param import RepoLangParam
-from typing import List, Tuple
+from typing import Tuple
 
 class ReposBatcher:
     def __init__(self) -> None:
         self.envs = EnvLoaderHelper.load_envs()
-        self.repos_without_scan_support = {
-            "count": 0,
-            "repos": {}
-        }
         self.not_supported_prefix = "not-supported-"
         self.name_all_results = "all-org"
         self.name_org_repo_lang_results = "all-results-for-orgs-and"
-        self.repo_limit = 50
+        self.repo_limit = 58
+        self.code_scan_langs = {
+            "javascript": "javscript",
+            "java": "java",
+            "go": "go",
+            "python": "python",
+            "c++": "cpp",
+            "c#": "csharp",
+            "ruby": "ruby",
+            "hcl": "hcl",
+            "powershell": "powershell",
+        }
 
         self.source_dir = "repo-results"
         self._create_dir(self.source_dir)
@@ -37,37 +44,54 @@ class ReposBatcher:
 
         self._cleanup_increments_dir(self.batch_dir)
 
-        self.org_paths = self._create_org_repo_paths()
         self.path_org_repos = os.path.join(self.date_dir, "all-org-repo-results.json")
         self.path_org_repo_langs = os.path.join(self.date_dir, "all-org-repo-lang-results.json")
+        self.path_unsupported_repos = os.path.join(self.date_dir, "all-unsupported-repos.json")
+        self.path_supported_repos = os.path.join(self.date_dir, "all-supported-repos.json")
 
 
     def run(self):
         all_together = self._get_all_together_results()
+        all_supported = self._filter_out_unsupported(all_together)
 
-        print("done")
-
-
-        # self.repos_without_scan_support["count"] = len(self.repos_without_scan_support["repos"].keys())
-        # self._save_results(self.repos_without_scan_support, os.path.join(self.target_dir, "repos-without-scan-support.json"))
-        # self._save_results(all_together, os.path.join(self.source_dir, "all-together.json"))
-        # self._batch_results(all_together, total_repos)
-
-
-    def _create_org_repo_paths(self) -> dict:
-        org_repo_paths = {}
-        for org_name in self.envs.batch_orgs:
-            org_repo_paths[org_name] = os.path.join(self.date_dir, f"{org_name}-repos.json")
-
-        return org_repo_paths
-
-
-    def _create_batches(self, all_together: dict):
-        pass
+        self._batch_results(all_supported)
 
 
     def _filter_out_unsupported(self, all_together: dict) -> dict:
-        pass
+        supported_repos = {
+            "count": 0,
+            "orgs": {}
+        }
+        unsupported_repos = {
+            "count": 0,
+            "orgs": {}
+        }
+
+        for org_name in all_together:
+            print(f"Look in {org_name}")
+            org_item = all_together[org_name]
+
+            for repo_name in org_item:
+                repo_item = org_item[repo_name]
+                if not self._has_at_least_one_supported_language(repo_item):
+                    unsupported_repos["count"] += 1
+
+                    if org_name not in unsupported_repos["orgs"]:
+                        unsupported_repos["orgs"][org_name] = {}
+
+                    unsupported_repos["orgs"][org_name][repo_name.lower()] = repo_item
+
+                else:
+                    supported_repos["count"] += 1
+
+                    if org_name not in supported_repos["orgs"]:
+                        supported_repos["orgs"][org_name] = {}
+
+                    supported_repos["orgs"][org_name][repo_name.lower()] = repo_item
+
+        self._save_results(unsupported_repos, self.path_unsupported_repos)
+        self._save_results(supported_repos, self.path_supported_repos)
+        return supported_repos
 
 
 
@@ -101,7 +125,7 @@ class ReposBatcher:
 
                 org_repo_lang_results[org][repo.lower()] = {
                     "primaryLanguage": ", ".join(langs_with_support),
-                    "repo": f"{org_name}/{repo_name}"
+                    "repo": f"{org}/{repo}"
                 }
 
             self._save_results(org_repo_lang_results, self.path_org_repo_langs)
@@ -117,17 +141,6 @@ class ReposBatcher:
 
 
     def _add_not_supported_to_langs(self, languages: list) -> list:
-        self.code_scan_langs = {
-            "javascript": "javscript",
-            "java": "java",
-            "go": "go",
-            "python": "python",
-            "c++": "cpp",
-            "c#": "csharp",
-            "ruby": "ruby",
-            "hcl": "hcl",
-            "powershell": "powershell",
-        }
         updates_langs = []
         for language in languages:
             lang_lower = language.lower()
@@ -183,14 +196,18 @@ class ReposBatcher:
         return None
 
 
-    def _get_org_repos_path(self, org: str, date_dir: str) -> str:
+    def _get_path_org_repos(self, org: str, date_dir: str) -> str:
         org_repos_path = os.path.join(date_dir, f"{org}-repos.json")
         return org_repos_path
 
 
+    def _get_path_batch(self, batch_number: int) -> str:
+        return os.path.join(self.batch_dir, f"repos({batch_number}).json")
+
+
     def _load_org(self, param: OrgLoadParam) -> Tuple[str, dict]:
         print(f"Load {param.org} Repos...")
-        existing = self._load_from_file_if_exists(self._get_org_repos_path(param.org, param.date_dir))
+        existing = self._load_from_file_if_exists(self._get_path_org_repos(param.org, param.date_dir))
         if existing:
             return param.org, existing
 
@@ -211,7 +228,7 @@ class ReposBatcher:
             next_url = self._get_next_url(response)
             org_results.extend(response.json())
 
-        self._save_results(org_results, self._get_org_repos_path(param.org, param.date_dir))
+        self._save_results(org_results, self._get_path_org_repos(param.org, param.date_dir))
         return param.org, org_results
 
 
@@ -240,34 +257,34 @@ class ReposBatcher:
     def _cleanup_increments_dir(self, batch_dir: str):
         files = os.listdir(batch_dir)
         for file_name in files:
-            file_path = os.path.join(self.target_dir, file_name)
+            file_path = os.path.join(batch_dir, file_name)
             os.remove(file_path)
 
 
-    def _batch_results(self, all_together: dict, total_repos: int):
+    def _batch_results(self, all_supported: dict):
         # initialize variables
         batch_count = 1
         repos_in_batch_count = 1
         batches = []
 
         # get total repos for run info
+        total_repos = all_supported["count"]
 
-        for org_name in sorted(all_together):
+        for org_name in sorted(all_supported["orgs"]):
             current_org = {
                 "login": org_name,
                 "repos": []
             }
             batches.append(current_org)
 
-            for repo_name_lower in sorted(all_together[org_name]):
-                item = all_together[org_name][repo_name_lower]
+            for repo_name_lower in sorted(all_supported["orgs"][org_name]):
+                item = all_supported["orgs"][org_name][repo_name_lower]
                 item["runInfo"] = f"Batch {batch_count}, Repo {repos_in_batch_count} of {total_repos}"
                 current_org["repos"].append(item)
                 repos_in_batch_count += 1
 
                 if repos_in_batch_count % self.repo_limit == 0:
-                    path_batch = os.path.join(self.target_dir, f"repos({batch_count}).json")
-                    self._save_results(batches, path_batch)
+                    self._save_results(batches, self._get_path_batch(batch_count))
 
                     # reset variables
                     batch_count += 1 # increment this one
@@ -279,8 +296,7 @@ class ReposBatcher:
                     batches.append(current_org)
 
         if batches:
-            path_batch = os.path.join(self.target_dir, f"repos({batch_count}).json")
-            self._save_results(batches, path_batch)
+            self._save_results(batches, self._get_path_batch(batch_count))
 
 
     def _save_results(self, results: dict, path: str):
@@ -291,38 +307,17 @@ class ReposBatcher:
 
 
     def _has_at_least_one_supported_language(self, repo_item: dict) -> bool:
-        languages = repo_item["primaryLanguage"].split(", ")
+        primary_language = repo_item["primaryLanguage"]
+        if primary_language == "":
+            return False
+
+        languages = primary_language.split(", ")
         for language in languages:
             if "not-supported" not in language:
                 return True
 
-        repo_name = repo_item["repo"].lower()
-
-        self.repos_without_scan_support["repos"][repo_name] = repo_item
         return False
 
-
-    def _read_as_one(self) -> Tuple[dict, int]:
-        all_together = {}
-        total_repos = 0
-        for json_path in self.json_paths:
-            repo_dict = []
-            with open(json_path, "r") as reader:
-                repo_dict = json.load(reader)
-
-            org_name = repo_dict[0]["login"]
-            if "login" not in all_together:
-                all_together[org_name] = {}
-
-            for repo_item in repo_dict[0]["repos"]:
-                if not self._has_at_least_one_supported_language(repo_item):
-                    continue
-
-                key = repo_item["repo"].lower()
-                total_repos += 1
-                all_together[org_name][key] = repo_item
-
-        return all_together, total_repos
 
 
 if __name__ == "__main__":
