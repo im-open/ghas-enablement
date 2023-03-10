@@ -118,6 +118,7 @@ export const worker = async (): Promise<unknown> => {
     let createdPr = false;
     for (repoIndex = 0; repoIndex < filteredRepos.length; repoIndex++) {
       if (createdPr) {
+        createdPr = false;
         const prWaitTimeMs = envs.prWaitSecs * 1000;
         // after a Pull Request is created wait about a minute.
         // This wait will allow the self hosted runners to continue to be
@@ -126,7 +127,6 @@ export const worker = async (): Promise<unknown> => {
         await delay(prWaitTimeMs);
         inform(`Wait is over! Continue to next repo.`);
       }
-      createdPr = false;
 
       inform(
         `Currently looping over: ${repoIndex + 1}/${
