@@ -13,27 +13,38 @@ from typing import List, Tuple
 
 class ReposBatcher:
     def __init__(self) -> None:
-        self.source_dir = "repo-results"
-        self.target_dir = os.path.join(self.source_dir, "repo-increments")
-        self.date_dir = os.path.join(self.source_dir, date.today().strftime("%Y-%m-%d"))
-        self.json_paths = self._get_json_paths()
-        self.repo_limit = 50
-        self._cleanup_increments_dir()
+        self.envs = EnvLoaderHelper.load_envs()
         self.repos_without_scan_support = {
             "count": 0,
             "repos": {}
         }
-        self.envs = EnvLoaderHelper.load_envs()
         self.not_supported_prefix = "not-supported-"
         self.name_all_results = "all-org"
         self.name_org_repo_lang_results = "all-results-for-orgs-and"
+        self.repo_limit = 50
 
-        if not os.path.exists(self.date_dir):
-            os.mkdir(self.date_dir)
+        self.source_dir = "repo-results"
+        self._create_dir(self.source_dir)
+
+        self.target_dir = os.path.join(self.source_dir, "repo-increments")
+        self._create_dir(self.target_dir)
+
+        self.date_dir = os.path.join(self.source_dir, date.today().strftime("%Y-%m-%d"))
+        self._create_dir(self.date_dir)
+
+        self.batch_dir = os.path.join(self.date_dir, "batches")
+        self._create_dir(self.batch_dir)
+
+        self._cleanup_increments_dir(self.batch_dir)
+
+        self.org_paths = self._create_org_repo_paths()
+        self.path_org_repos = os.path.join(self.date_dir, "all-org-repo-results.json")
+        self.path_org_repo_langs = os.path.join(self.date_dir, "all-org-repo-lang-results.json")
 
 
     def run(self):
         all_together = self._get_all_together_results()
+
         print("done")
 
 
@@ -43,8 +54,30 @@ class ReposBatcher:
         # self._batch_results(all_together, total_repos)
 
 
+    def _create_org_repo_paths(self) -> dict:
+        org_repo_paths = {}
+        for org_name in self.envs.batch_orgs:
+            org_repo_paths[org_name] = os.path.join(self.date_dir, f"{org_name}-repos.json")
+
+        return org_repo_paths
+
+
+    def _create_batches(self, all_together: dict):
+        pass
+
+
+    def _filter_out_unsupported(self, all_together: dict) -> dict:
+        pass
+
+
+
+    def _create_dir(self, dir: str):
+        if not os.path.exists(dir):
+            os.mkdir(dir)
+
+
     def _get_all_together_results(self) -> dict:
-        existing = self._load_from_file_if_exists(self.name_org_repo_lang_results, self.date_dir)
+        existing = self._load_from_file_if_exists(self.path_org_repo_langs)
         if existing:
             return existing
 
@@ -71,7 +104,7 @@ class ReposBatcher:
                     "repo": f"{org_name}/{repo_name}"
                 }
 
-            self._save_results(org_repo_lang_results, self._get_org_repos_path(self.name_org_repo_lang_results, self.date_dir))
+            self._save_results(org_repo_lang_results, self.path_org_repo_langs)
             return org_repo_lang_results
 
 
@@ -118,7 +151,7 @@ class ReposBatcher:
 
 
     def _load_orgs_for_batch(self) -> dict:
-        existing = self._load_from_file_if_exists(self.name_all_results, self.date_dir)
+        existing = self._load_from_file_if_exists(self.path_org_repos)
         if existing:
             return existing
 
@@ -138,14 +171,13 @@ class ReposBatcher:
 
                 parsed_results[org_name].append(repo_name)
 
-        self._save_results(parsed_results, self._get_org_repos_path(self.name_all_results, self.date_dir))
+        self._save_results(parsed_results, self.path_org_repos)
         return parsed_results
 
 
-    def _load_from_file_if_exists(self, org: str, date_dir: str) -> dict:
-        org_repos_path = self._get_org_repos_path(org, date_dir)
-        if os.path.exists(org_repos_path):
-            with open(org_repos_path, "r") as reader:
+    def _load_from_file_if_exists(self, path: str) -> dict:
+        if os.path.exists(path):
+            with open(path, "r") as reader:
                 return json.load(reader)
 
         return None
@@ -158,7 +190,7 @@ class ReposBatcher:
 
     def _load_org(self, param: OrgLoadParam) -> Tuple[str, dict]:
         print(f"Load {param.org} Repos...")
-        existing = self._load_from_file_if_exists(param.org, param.date_dir)
+        existing = self._load_from_file_if_exists(self._get_org_repos_path(param.org, param.date_dir))
         if existing:
             return param.org, existing
 
@@ -205,8 +237,8 @@ class ReposBatcher:
         return next.get("url")
 
 
-    def _cleanup_increments_dir(self):
-        files = os.listdir(self.target_dir)
+    def _cleanup_increments_dir(self, batch_dir: str):
+        files = os.listdir(batch_dir)
         for file_name in files:
             file_path = os.path.join(self.target_dir, file_name)
             os.remove(file_path)
@@ -291,17 +323,6 @@ class ReposBatcher:
                 all_together[org_name][key] = repo_item
 
         return all_together, total_repos
-
-
-    def _get_json_paths(self) -> list:
-        json_paths = []
-        file_names = os.listdir(self.source_dir)
-        for file_name in file_names:
-            if file_name.startswith("im-") and file_name.endswith(".json"):
-                json_paths.append(os.path.join(self.source_dir, file_name))
-
-        return json_paths
-
 
 
 if __name__ == "__main__":
