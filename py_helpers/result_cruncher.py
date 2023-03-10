@@ -1,140 +1,102 @@
 import json
-import os
 
+from shared.path_helper import PathHelper, FileName
 from shared.runnable_class import RunnableClass
 
 class ResultCruncher(RunnableClass):
-    def _has_at_least_one_supported(self, languages):
-        has_one = False
-        for raw_language in languages:
-            language = raw_language.strip()
-            if "not-supported" not in language:
-                has_one = True
-                break
+    def __init__(self) -> None:
+        self.key_counts_workflow = "counts-code-scan-workflows"
+        self.key_counts_language_supported = "counts-language-supported"
+        self.key_counts_language_unsupported = "counts-language-unsupported"
+        self.key_across_orgs = "across-orgs"
+        self.key_by_org = "by-org"
 
-        return has_one
 
     def run(self):
-        across_orgs = "across-orgs"
-        by_org = "by-org"
-        all_result_sums = {}
-        workflows_to_create = {
-            across_orgs: 0,
-            by_org: {}
+        print("Get All Result Counts")
+        org_repo_lang_results = None
+        with open(PathHelper.get_file_name(FileName.ORG_REPO_LANGS), "r") as reader:
+            org_repo_lang_results = json.load(reader)
+
+        results = {
+            self.key_counts_workflow: {
+                self.key_across_orgs: 0,
+                self.key_by_org: {}
+            },
+            self.key_counts_language_supported: {
+                self.key_across_orgs: {},
+                self.key_by_org: {},
+            },
+            self.key_counts_language_unsupported: {
+                self.key_across_orgs: {},
+                self.key_by_org: {},
+            },
         }
-        for org in self.orgs:
-            repos = self._load_repos(org)
 
-            if org not in workflows_to_create[by_org]:
-                workflows_to_create[by_org][org] = 0
+        for org_name in org_repo_lang_results:
+            org_item = org_repo_lang_results[org_name]
 
-            for item in repos["repos"]:
-                languages = item["primaryLanguage"].split(",")
-                repo_name = item["repo"]
+            for repo_name in org_item:
+                repo_item = org_item[repo_name]
 
-                if self._has_at_least_one_supported(languages):
-                    if org not in workflows_to_create[by_org]:
-                        workflows_to_create[by_org][org] = 1
+                primary_language = repo_item["primaryLanguage"]
+                if primary_language == "":
+                    continue
+
+                languages = primary_language.split(", ")
+                if self._has_a_supported_language(languages):
+                    # workflow needed
+                    results[self.key_counts_workflow][self.key_across_orgs] += 1
+
+                    if org_name not in results[self.key_counts_workflow][self.key_by_org]:
+                        results[self.key_counts_workflow][self.key_by_org][org_name] = 1
                     else:
-                        workflows_to_create[by_org][org] += 1
+                        results[self.key_counts_workflow][self.key_by_org][org_name] += 1
 
-                for raw_language in languages:
-                    language = raw_language.strip()
+                for language in languages:
+                    if "not-supported" in language:
+                        self._add_language_count(results, self.key_counts_language_unsupported, self.key_across_orgs, language)
+                        self._add_language_count(results, self.key_counts_language_unsupported, self.key_by_org, language, org_name)
 
-                    if language not in all_result_sums:
-                        all_result_sums[language] = []
-
-                    if repo_name not in all_result_sums[language]:
-                        all_result_sums[language].append(repo_name)
-
-        total = 0
-        for org in workflows_to_create[by_org]:
-            total += workflows_to_create[by_org][org]
-
-        workflows_to_create[across_orgs] = total
-
-        all_counts = {
-            across_orgs: {},
-            by_org: {},
-        }
-        # create counts
-        for language in all_result_sums:
-            all_counts[across_orgs][language] = len(all_result_sums[language])
-            for org_repo_name in all_result_sums[language]:
-                org_name, repo_name = org_repo_name.split("/")
-                if org_name not in all_counts[by_org]:
-                    all_counts[by_org][org_name] = {}
-
-                if language not in all_counts[by_org][org_name]:
-                    all_counts[by_org][org_name][language] = 1
-                else:
-                    all_counts[by_org][org_name][language] += 1
-
-        combined = {
-            "counts-languages": all_counts,
-            "counts-workflows": workflows_to_create,
-            "raw-results": all_result_sums,
-        }
-        self._save_summation("new-totals", combined)
+                    else:
+                        self._add_language_count(results, self.key_counts_language_supported, self.key_across_orgs, language)
+                        self._add_language_count(results, self.key_counts_language_supported, self.key_by_org, language, org_name)
 
 
-    def create_summations(self):
-        self._save_summation(
-            name="language-sums",
-            sums=self._create_language_sums()
-        )
+        print("Save results...")
+        json_str = json.dumps(results, indent=3, sort_keys=True)
+        with open(PathHelper.get_file_name(FileName.COUNTS), "w") as writer:
+            writer.write(json_str)
+
+        print("DONE!")
 
 
-    def _create_language_sums(self) -> dict:
-        sums = {}
-        for org in self.orgs:
-            repos = self._load_repos(org)
-            for repo_item in repos["repos"]:
-                repo_name = repo_item["repo"]
-                language = repo_item["primaryLanguage"]
-
-                if language not in sums:
-                    sums[language] = []
-
-                sums[language].append(repo_name)
-
-        languages = list(sums.keys())
-        for language in languages:
-            language_count = len(sums[language])
-
-            if "counts" not in sums:
-                sums["counts"] = {}
-
-            sums["counts"][language] = language_count
-
-        return sums
-
-
-    def _save_summation(self, name: str, sums: dict):
-        path = os.path.join("repo-results", f"{name}.json")
-
-        contents = json.dumps(sums, indent=3, sort_keys=True)
-        with open(path, "w") as writer:
-            writer.write(contents)
-
-    def _load_repos(self, org: str) -> str:
-        path = f"repo-results/{org}-repos.json"
-
-        with open(path, "r") as reader:
-            items = json.load(reader)
-            if len(items) == 1:
-                return items[0]
-
+    def _add_language_count(self, results: dict, main_key: str, secondary_key: str, language: str, org_name: str=None):
+        if org_name is None:
+            if language not in results[main_key][secondary_key]:
+                results[main_key][secondary_key][language] = 1
             else:
-                all_items = []
-                for item in items:
-                    all_items.extend(item)
+                results[main_key][secondary_key][language] += 1
+        else:
+            if org_name not in results[main_key][secondary_key]:
+                results[main_key][secondary_key][org_name] = {}
 
-                return all_items
+            if language not in results[main_key][secondary_key][org_name]:
+                results[main_key][secondary_key][org_name][language] = 1
+            else:
+                results[main_key][secondary_key][org_name][language] += 1
 
+
+    def _has_a_supported_language(self, languages) -> bool:
+        for language in languages:
+            if "not-supported" in language:
+                continue
+
+            return True
+
+        return False
 
 
 if __name__ == "__main__":
-    instance = ResultCruncher()
-    instance.create_summations()
-    instance.run()
+    cruncher = ResultCruncher()
+    cruncher.run()

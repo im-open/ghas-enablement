@@ -33,8 +33,8 @@ class ReposBatcher(RunnableClass):
         }
 
         self._cleanup_increments_dir(PathHelper.get_batch_dir())
-        self.path_org_repos = PathHelper.get_file_name(FileName.ORG_REPO)
-        self.path_org_repo_langs = PathHelper.get_file_name(FileName.ORG_REPO_LANG)
+        self.path_org_repos = PathHelper.get_file_name(FileName.ORG_REPOS)
+        self.path_org_repo_langs = PathHelper.get_file_name(FileName.ORG_REPO_LANGS)
         self.path_unsupported_repos = PathHelper.get_file_name(FileName.UNSUPPORTED)
         self.path_supported_repos = PathHelper.get_file_name(FileName.SUPPORTED)
 
@@ -104,7 +104,7 @@ class ReposBatcher(RunnableClass):
 
 
     def _get_all_together_results(self) -> dict:
-        existing = self._load_from_file_if_exists(PathHelper.get_file_name(FileName.ORG_REPO_LANG))
+        existing = self._load_from_file_if_exists(PathHelper.get_file_name(FileName.ORG_REPO_LANGS))
         if existing:
             return existing
 
@@ -131,7 +131,7 @@ class ReposBatcher(RunnableClass):
                     "repo": f"{org}/{repo}"
                 }
 
-            self._save_results(org_repo_lang_results, PathHelper.get_file_name(FileName.ORG_REPO_LANG))
+            self._save_results(org_repo_lang_results, PathHelper.get_file_name(FileName.ORG_REPO_LANGS))
             return org_repo_lang_results
 
 
@@ -167,7 +167,7 @@ class ReposBatcher(RunnableClass):
 
 
     def _load_orgs_for_batch(self) -> dict:
-        existing = self._load_from_file_if_exists(PathHelper.get_file_name(FileName.ORG_REPO))
+        existing = self._load_from_file_if_exists(PathHelper.get_file_name(FileName.ORG_REPOS))
         if existing:
             return existing
 
@@ -187,7 +187,7 @@ class ReposBatcher(RunnableClass):
 
                 parsed_results[org_name].append(repo_name)
 
-        self._save_results(parsed_results, PathHelper.get_file_name(FileName.ORG_REPO))
+        self._save_results(parsed_results, PathHelper.get_file_name(FileName.ORG_REPOS))
         return parsed_results
 
 

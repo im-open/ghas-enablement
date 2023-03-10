@@ -4,8 +4,9 @@ from datetime import date
 from enum import Enum
 
 class FileName(Enum):
-    ORG_REPO_LANG = "all-org-repo-lang-results.json"
-    ORG_REPO = "all-org-repo-results.json"
+    COUNTS = "all-counts.json"
+    ORG_REPOS = "all-org-repo-results.json"
+    ORG_REPO_LANGS = "all-org-repo-lang-results.json"
     SUPPORTED = "all-supported-repos.json"
     UNSUPPORTED = "all-unsupported-repos.json"
 
