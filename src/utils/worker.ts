@@ -115,7 +115,19 @@ export const worker = async (): Promise<unknown> => {
       allRepos
     );
 
+    let createdPr = false;
     for (repoIndex = 0; repoIndex < filteredRepos.length; repoIndex++) {
+      if (createdPr) {
+        const prWaitTimeMs = envs.prWaitSecs * 1000;
+        // after a Pull Request is created wait about a minute.
+        // This wait will allow the self hosted runners to continue to be
+        // used by teams without interruption
+        inform(`Wait ${envs.prWaitSecs} seconds before continuing...`);
+        await delay(prWaitTimeMs);
+        inform(`Wait is over! Continue to next repo.`);
+      }
+      createdPr = false;
+
       inform(
         `Currently looping over: ${repoIndex + 1}/${
           filteredRepos.length
@@ -128,7 +140,15 @@ export const worker = async (): Promise<unknown> => {
       } = filteredRepos[repoIndex];
 
       if (runInfo != "") {
-        inform(runInfo);
+        inform("");
+        inform(
+          "------------------------------------------------------------------------"
+        );
+        inform(`STARTING ${runInfo}`);
+        inform(
+          "------------------------------------------------------------------------"
+        );
+        inform("");
       }
 
       const [owner, repo] = repoName.split("/");
@@ -197,15 +217,20 @@ export const worker = async (): Promise<unknown> => {
             await enableIssueCreation(pullRequestURL, owner, repo, client);
           }
           await writeToFile(pullRequestURL);
-
-          const prWaitTimeMs = envs.prWaitSecs * 1000;
-          // after a Pull Request is created wait about a minute.
-          // This wait will allow the self hosted runners to continue to be
-          // used by teams without interruption
-          inform(`Wait ${envs.prWaitSecs} seconds before continuing...`);
-          await delay(prWaitTimeMs);
-          inform(`Wait is over! Continue to next repo.`);
+          createdPr = true;
         }
+      }
+
+      if (runInfo != "") {
+        inform("");
+        inform(
+          "------------------------------------------------------------------------"
+        );
+        inform(`COMPLETED ${runInfo}`);
+        inform(
+          "------------------------------------------------------------------------"
+        );
+        inform("");
       }
     }
   }
