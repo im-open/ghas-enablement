@@ -19,7 +19,7 @@ class ReposBatcher(RunnableClass):
         self.not_supported_prefix = "not-supported-"
         self.name_all_results = "all-org"
         self.name_org_repo_lang_results = "all-results-for-orgs-and"
-        self.repo_limit = 58
+        self.batch_repo_limit = 58
         self.code_scan_langs = {
             "javascript": "javscript",
             "java": "java",
@@ -78,10 +78,24 @@ class ReposBatcher(RunnableClass):
 
                     supported_repos["orgs"][org_name][repo_name.lower()] = repo_item
 
+        self._add_run_info(unsupported_repos)
         self._save_results(unsupported_repos, PathHelper.get_file_name(FileName.UNSUPPORTED))
+
+        self._add_run_info(supported_repos)
         self._save_results(supported_repos, PathHelper.get_file_name(FileName.SUPPORTED))
         return supported_repos
 
+
+    def _add_run_info(self, repos: dict):
+        total = repos["count"]
+        running_count = 1
+        for org_name in repos["orgs"]:
+            org_item = repos["orgs"][org_name]
+
+            for repo_name in org_item:
+                repo_item = org_item[repo_name]
+                repo_item["runInfo"] = f"{running_count} of {total}"
+                running_count += 1
 
 
     def _create_dir(self, dir: str):
@@ -241,14 +255,15 @@ class ReposBatcher(RunnableClass):
             os.remove(file_path)
 
 
+    def _get_repo_number(self, run_info: str) -> int:
+        # "494 of 499"
+        return int(run_info.split("of")[0].strip())
+
+
     def _batch_results(self, all_supported: dict):
         # initialize variables
         batch_count = 1
-        repos_in_batch_count = 1
         batches = []
-
-        # get total repos for run info
-        total_repos = all_supported["count"]
 
         for org_name in sorted(all_supported["orgs"]):
             current_org = {
@@ -259,11 +274,13 @@ class ReposBatcher(RunnableClass):
 
             for repo_name_lower in sorted(all_supported["orgs"][org_name]):
                 item = all_supported["orgs"][org_name][repo_name_lower]
-                item["runInfo"] = f"Batch {batch_count}, Repo {repos_in_batch_count} of {total_repos}"
-                current_org["repos"].append(item)
-                repos_in_batch_count += 1
+                current_run_info = item["runInfo"]
+                repo_number = self._get_repo_number(current_run_info)
 
-                if repos_in_batch_count % self.repo_limit == 0:
+                item["runInfo"] = f"(Batch {batch_count}) Repo {current_run_info}"
+                current_org["repos"].append(item)
+
+                if repo_number % self.batch_repo_limit == 0:
                     self._save_results(batches, PathHelper.get_batch_number(batch_count))
 
                     # reset variables

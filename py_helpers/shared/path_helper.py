@@ -10,18 +10,16 @@ class FileName(Enum):
     UNSUPPORTED = "all-unsupported-repos.json"
 
 class PathHelper:
-
-    @staticmethod
-    def get_date_str() -> str:
-        return date.today().strftime("%Y-%m-%d")
-
     @staticmethod
     def get_repo_results() -> str:
-        return "repo-results"
+        path = "repo-results"
+        PathHelper.verify_dir(path)
+
+        return path
 
     @staticmethod
     def get_date_dir() -> str:
-        date_str = PathHelper.get_date_str()
+        date_str = date.today().strftime("%Y-%m-%d")
         repo_results = PathHelper.get_repo_results()
 
         path = os.path.join(repo_results, date_str)
@@ -59,7 +57,7 @@ class PathHelper:
     def get_org_repos(org_name: str) -> str:
         date_dir = PathHelper.get_date_dir()
 
-        return os.path.join(date_dir, org_name)
+        return os.path.join(date_dir, f"{org_name}-repos.json")
 
     @staticmethod
     def get_py_helpers() -> str:
