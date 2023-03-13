@@ -61,6 +61,19 @@ class PathHelper:
         return os.path.join(date_dir, f"{org_name}-repos.json")
 
     @staticmethod
+    def get_org_code_scan_repos(org_name: str) -> str:
+        date_dir = PathHelper.get_date_dir()
+
+        return os.path.join(date_dir, f"{org_name}-repos-with-code-scanning.json")
+
+
+    def get_org_repos_without_code_scanning(org_name: str) -> str:
+        date_dir = PathHelper.get_date_dir()
+
+        return os.path.join(date_dir, f"{org_name}-repos-without-code-scanning.json")
+
+
+    @staticmethod
     def get_py_helpers() -> str:
         return "py_helpers"
 

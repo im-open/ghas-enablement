@@ -201,29 +201,75 @@ class ReposBatcher(RunnableClass):
 
     def _load_org(self, param: OrgLoadParam) -> Tuple[str, dict]:
         print(f"Load {param.org} Repos...")
-        existing = self._load_from_file_if_exists(PathHelper.get_org_repos(param.org))
-        if existing:
-            return param.org, existing
 
-        response = self._run_get(param.api_url, param.headers, param.sleep_time_secs)
-        if response is None:
-            print(f"Error Loading {param.org}")
-            return param.org, {}
+        repos_with_code_scan = self._find_code_scan_workflows_in_org(param.org, param.headers)
+        print(repos_with_code_scan)
 
-        org_results = []
-        org_results.extend(response.json())
-        next_url = self._get_next_url(response)
-        while next_url is not None:
-            response = self._run_get(next_url, param.headers, param.sleep_time_secs)
+        org_results = self._load_from_file_if_exists(PathHelper.get_org_repos(param.org))
+        if not org_results:
+            response = self._run_get(param.api_url, param.headers, param.sleep_time_secs)
             if response is None:
-                print(f"Part-way Error Loading {param.org}")
-                return param.org, org_results
+                print(f"Error Loading {param.org}")
+                return param.org, {}
 
-            next_url = self._get_next_url(response)
+            org_results = []
             org_results.extend(response.json())
+            next_url = self._get_next_url(response)
+            while next_url is not None:
+                response = self._run_get(next_url, param.headers, param.sleep_time_secs)
+                if response is None:
+                    print(f"Part-way Error Loading {param.org}")
+                    return param.org, org_results
 
-        self._save_results(org_results, PathHelper.get_org_repos(param.org))
-        return param.org, org_results
+                next_url = self._get_next_url(response)
+                org_results.extend(response.json())
+
+            self._save_results(org_results, PathHelper.get_org_repos(param.org))
+
+        updated_results = self._filter_out_results_with_code_scanning(org_results, repos_with_code_scan)
+
+        self._save_results(updated_results, PathHelper.get_org_repos_without_code_scanning(param.org))
+        return param.org, updated_results
+
+
+    def _filter_out_results_with_code_scanning(self, org_results: dict, repos_with_code_scan: dict) -> dict:
+        if repos_with_code_scan["total_count"] == 0:
+            return org_results
+
+        updated_results = []
+        for repo_item in org_results:
+            repo_name = repo_item["name"]
+
+            has_code_scanning = False
+            for code_scan_item in repos_with_code_scan["items"]:
+                code_scan_repo = code_scan_item["repository"]["name"]
+
+                if repo_name == code_scan_repo:
+                    has_code_scanning = True
+                    break
+
+            if has_code_scanning:
+                continue
+
+            updated_results.append(repo_item)
+
+        return updated_results
+
+
+    def _find_code_scan_workflows_in_org(self, org_name: str, headers: dict) -> dict:
+        existing = self._load_from_file_if_exists(PathHelper.get_org_code_scan_repos(org_name))
+        if existing:
+            return existing
+
+        # https://docs.github.com/en/rest/search?apiVersion=2022-11-28#search-code
+        querystring = f"org:{org_name} path:.github/workflows filename:code-analysis"
+        url = f"https://api.github.com/search/code?q={querystring}"
+        sleep_secs = .25
+        response = self._run_get(url, headers, sleep_secs)
+
+        results = response.json()
+        self._save_results(results, PathHelper.get_org_code_scan_repos(org_name))
+        return results
 
 
     def _run_get(self, url: str, headers: dict, sleep_secs: float) -> Response:
