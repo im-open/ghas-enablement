@@ -64,7 +64,7 @@ If you pick Dependabot Security Updates:
 1.  Clone this repository onto your local machine.
 
     ```bash
-    git clone https://github.com/im-open/ghas-enablement.git
+    git clone git@github.com:im-open/ghas-enablement.git
     ```
 
 1.  Change the directory to the repository you have just installed.
