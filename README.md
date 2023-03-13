@@ -209,8 +209,10 @@ The reason you need this within your `.devcontainer/devcontainer.json` file is t
 
 Once complete the following will happen:
 
-1. PR entry will be added to `prs.txt`
-1. All selected options will be enabled.
+1. Entry will be added to `prs.txt` for each PR that is created
+1. All selected options will be enabled in the repo(s).
+
+### Example Code Analysis Yml
 
 As an example if all language criteria were to be met the following example shows what the `code-analysis.yml` file may look like.
 
