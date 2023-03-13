@@ -17,9 +17,11 @@ Secret Scanning & Dependabot is also hard to enable if you only want to enable i
 In addition to CodeQL Scanning we have added additional scanning capabilities for two other languages:
 
 1. [Terraform Scan Action](https://github.com/aquasecurity/tfsec-action)
-   - Terraform scanning comes via [tfsec](https://github.com/aquasecurity/tfsec). See [Azure Checks](https://aquasecurity.github.io/tfsec/v1.28.1/checks/azure/) for more information.
+   - Terraform scanning comes via [tfsec](https://github.com/aquasecurity/tfsec).
+   - See [Azure Checks](https://aquasecurity.github.io/tfsec/v1.28.1/checks/azure/) for more information.
 1. [PowerShell Scan Action](https://github.com/microsoft/psscriptanalyzer-action)
-   - PowerShell scanning comes via [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer). See [PowerShell Rules](https://github.com/PowerShell/PSScriptAnalyzer/blob/master/docs/Rules/README.md) for more information.
+   - PowerShell scanning comes via [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer).
+   - See [PowerShell Rules](https://github.com/PowerShell/PSScriptAnalyzer/blob/master/docs/Rules/README.md) for more information.
 
 ## What does this tooling do?
 
