@@ -19,7 +19,7 @@ class ReposBatcher(RunnableClass):
         self.not_supported_prefix = "not-supported-"
         self.name_all_results = "all-org"
         self.name_org_repo_lang_results = "all-results-for-orgs-and"
-        self.batch_repo_limit = 58
+        self.batch_repo_limit = self.envs.repos_per_batch
         self.code_scan_langs = {
             "javascript": "javscript",
             "java": "java",

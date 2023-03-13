@@ -169,6 +169,22 @@ As you can see, the object takes a number of boolean keys:
 
 **NOTE:** The account that generated the PAT needs to have `write` access or higher over any repository that you include within the `repos` key.
 
+**OPTION 4**
+
+Option 4 supports enabling GHAS in batches. New code, which has been written in python, has been written to handle this. A new property in the `.env` file has been created called `BATCH_ORGS`. This is a comma-separated list of github organization names (no spaces should exist in between commas). This option will asynchronously lookup orgs, repos and their languages, and whether they already have the code scanning workflow this tool creates.
+
+> Note: In order to save API calls results are saved in `repo-results/YYYY-MM-DD` directory.
+
+How to Run the batching functionality to create `repos.json` files:
+
+1. Set `REPOS_PER_BATCH` value in `.env` file.
+1. Run the debug configuration `Python: Main` and select option 3 `REPOS_BATCHER` by typing `3` and pressing `ENTER`
+   - The batched repos.json files are saved to `repo-results/YYYY-MM-DD/batches`
+1. Run `Python: Main` again but this time select selection option 2 `PREPARE_BATCH` by typing `2` and pressing `ENTER`
+   - Enter the batch number that will be run by typing the number and pressing `ENTER`.
+1. Run what is in [Step Two](#step-two)
+1. Run this over and over again until all batches have been run.
+
 ### Step Two
 
 Run the script which enables Code Scanning (and/or Dependabot Alerts/Dependabot Security Updates/Secret Scanning) on your repository by running:
