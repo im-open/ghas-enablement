@@ -1,5 +1,6 @@
 export type repo = {
   primaryLanguage: string;
+  runInfo: string;
   repo: string;
 };
 
@@ -27,6 +28,7 @@ export type config = {
 
 export type usersWriteAdminRepos = {
   primaryLanguage: string;
+  runInfo: string;
   repo: string;
 };
 

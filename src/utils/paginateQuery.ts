@@ -129,6 +129,7 @@ const getRepositoryInOrganizationPaginate = async (
         return paginatedData.push({
           primaryLanguage: element.primaryLanguage?.name || "",
           repo: element.nameWithOwner,
+          runInfo: "",
         });
       }
     });

@@ -14,6 +14,17 @@ The primary motivator for this utility is CodeQL. It is incredibly time-consumin
 
 Secret Scanning & Dependabot is also hard to enable if you only want to enable it on specific repositories versus everything. This tool allows you to do that easily.
 
+This implementation makes use of CodeQL, Terraform, and PowerShell scanning actions:
+
+1. [CodeQL Scan Action](https://github.com/github/codeql-action)
+   - CodeQL scanning comes via [CodeQL Engine](https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/about-code-scanning-with-codeql)
+1. [Terraform Scan Action](https://github.com/aquasecurity/tfsec-action)
+   - Terraform scanning comes via [tfsec](https://github.com/aquasecurity/tfsec).
+   - See [Azure Checks](https://aquasecurity.github.io/tfsec/v1.28.1/checks/azure/) for more information.
+1. [PowerShell Scan Action](https://github.com/microsoft/psscriptanalyzer-action)
+   - PowerShell scanning comes via [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer).
+   - See [PowerShell Rules](https://github.com/PowerShell/PSScriptAnalyzer/blob/master/docs/Rules/README.md) for more information.
+
 ## What does this tooling do?
 
 There are two main actions this tool does:
@@ -53,6 +64,7 @@ If you pick Dependabot Security Updates:
 - [Yarn](https://yarnpkg.com/)\*
 - [TypeScript](https://www.typescriptlang.org/download)
 - [Git](https://git-scm.com/downloads) installed on the (user's) machine running this tool.
+- [Python](https://www.python.org/downloads/) If using first option in [Step 1](#step-one)
 - A Personal Access Token (PAT) that has at least admin access over the repositories they want to enable Code Scanning on.
 - Some basic software development skills, e.g., can navigate their way around a terminal or command prompt.
 
@@ -63,7 +75,7 @@ If you pick Dependabot Security Updates:
 1.  Clone this repository onto your local machine.
 
     ```bash
-    git clone https://github.com/NickLiffen/ghas-enablement.git
+    git clone git@github.com:im-open/ghas-enablement.git
     ```
 
 1.  Change the directory to the repository you have just installed.
@@ -82,7 +94,7 @@ If you pick Dependabot Security Updates:
 
 1.  Update the `.env` with the required values. Please pick one of the authentication methods for interacting with GitHub. You can either fill in the `GITHUB_API_TOKEN` with a PAT that has access to the Org. OR, fill in all the values required for a GitHub App. **Note**: It is recommended to pick the GitHub App choice if running on thousands of repositories, as this gives you more API requests versus a PAT.
 
-1.  Update the `GITHUB_ORG` value found within the `.env`. Remove the `XXXX` and replace that with the name of the GitHub Organisation you would like to use as part of this script.
+1.  Update the `GITHUB_ORG` value found within the `.env`. Remove the `XXXX` and replace that with the name of the GitHub organization you would like to use as part of this script.
 
 1.  Update the `LANGUAGE_TO_CHECK` value found within the `.env`. Remove the `XXXX` and replace that with the language you would like to use as a filter when collecting repositories. **Note**: Please make sure these are lowercase values, such as: `javascript`, `python`, `go`, `ruby`, `hcl`, `powershell`, etc.
 
@@ -108,9 +120,30 @@ There are two simple steps to run:
 
 ### Step One
 
-The first step is collecting the repositories you would like to run this script on. You have three options as mentioned above. Option 1 is automated and finds all the repositories within an organisation you have admin access to. Option 2 is automated and finds all the repositories within an organisation based on the language you specify. Or, Option 3, which is a manual entry of the repositories you would like to run this script on. See more information below.
+The first step is collecting the repositories you would like to run this script on. You have four options as mentioned above:
 
-**OPTION 1** (Preferred)
+- Option 1 is automated and finds all repositories in all organizations
+- Option 2 is automated and finds all the repositories within an organization you have admin access to.
+- Option 3 is automated and finds all the repositories within an organization based on the language you specify.
+- Option 4, which is a manual entry of the repositories you would like to run this script on. See more information below.
+
+#### **OPTION 1** (How We Are Running it)
+
+This options supports enabling GHAS in batches. New code, which has been written in python, has been written to handle this. A new property in the `.env` file has been created called `BATCH_ORGS`. This is a comma-separated list of github organization names (no spaces should exist in between commas). This option will asynchronously lookup orgs, repos and their languages, and whether they already have the code scanning workflow this tool creates.
+
+> Note: In order to save API calls results are saved in `repo-results/YYYY-MM-DD` directory.
+
+How to Run the batching functionality to create `repos.json` files:
+
+1. Set `REPOS_PER_BATCH` value in `.env` file.
+1. Run the debug configuration `Python: Main` and select option 3 `REPOS_BATCHER` by typing `3` and pressing `ENTER`
+   - The batched repos.json files are saved to `repo-results/YYYY-MM-DD/batches`
+1. Run `Python: Main` again but this time select selection option 2 `PREPARE_BATCH` by typing `2` and pressing `ENTER`
+   - Enter the batch number that will be run by typing the number and pressing `ENTER`.
+1. Run what is in [Step Two](#step-two)
+1. Run this over and over again until all batches have been run.
+
+#### **OPTION 2**
 
 ```bash
 yarn run getRepos // In the `.env` set the `LANGUAGE_TO_CHECK=` to the language. E.G `python`, `javascript`, `go`, `hcl`, `powershell`, etc.
@@ -122,7 +155,7 @@ When using GitHub Actions, we commonly find (especially for non-build languages 
 
 This script only returns repositories where CodeQL results have not already been uploaded to code scanning. If any CodeQL results have been uploaded to a repositories code scanning feature, that repository will not be returned to this list. The motivation behind this is not to raise pull requests on repositories where CodeQL has already been enabled.
 
-**OPTION 2**
+#### **OPTION 3**
 
 ```bash
 yarn run getRepos // or npm run getRepos
@@ -132,7 +165,7 @@ Similar to step one, another automated approach is to enable by user access. Thi
 
 This script only returns repositories where CodeQL results have not already been uploaded to code scanning. If any CodeQL results have been uploaded to a repositories code scanning feature, that repository will not be returned to this list. The motivation behind this is not to raise pull requests on repositories where CodeQL has already been enabled.
 
-**OPTION 3**
+#### **OPTION 4**
 
 Create a file called `repos.json` within the `./bin/` directory. This file needs to have an array of organization objects, each with its own array of repository objects. The structure of the objects should look like this:
 
@@ -181,7 +214,20 @@ This will run a script, and you should see output text appearing on your screen.
 
 After the script has run, please head to your `~/Desktop` directory and delete the `tempGitLocations` directory that has been automatically created.
 
-The reason you need this within your `.devcontainer/devcontainer.json` file is the `GITHUB_TOKEN` tied to the Codespace will need to access other repositories within your organisation which this script may interact with. You will need to create a new Codespace **after** you have added the above and pushed it to your repository.
+The reason you need this within your `.devcontainer/devcontainer.json` file is the `GITHUB_TOKEN` tied to the Codespace will need to access other repositories within your organization which this script may interact with. You will need to create a new Codespace **after** you have added the above and pushed it to your repository.
+
+### Outcome
+
+Once complete the following will happen:
+
+1. Entry will be added to `prs.txt` for each PR that is created
+1. All selected options will be enabled in the repo(s).
+
+### Example Code Analysis Yml
+
+As an example if all language criteria were to be met the following example shows what the `code-analysis.yml` file may look like.
+
+- [Example code-analysis.yml](/example-code-analysis.yml.text)
 
 # About Original Parent Repo
 
