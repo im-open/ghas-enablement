@@ -14,8 +14,10 @@ The primary motivator for this utility is CodeQL. It is incredibly time-consumin
 
 Secret Scanning & Dependabot is also hard to enable if you only want to enable it on specific repositories versus everything. This tool allows you to do that easily.
 
-In addition to CodeQL Scanning we have added additional scanning capabilities for two other languages:
+This implementation makes use of CodeQL, Terraform, and PowerShell scanning actions:
 
+1. [CodeQL Scan Action](https://github.com/github/codeql-action)
+   - CodeQL scanning comes via [CodeQL Engine](https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/about-code-scanning-with-codeql)
 1. [Terraform Scan Action](https://github.com/aquasecurity/tfsec-action)
    - Terraform scanning comes via [tfsec](https://github.com/aquasecurity/tfsec).
    - See [Azure Checks](https://aquasecurity.github.io/tfsec/v1.28.1/checks/azure/) for more information.
