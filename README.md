@@ -108,7 +108,12 @@ There are two simple steps to run:
 
 ### Step One
 
-The first step is collecting the repositories you would like to run this script on. You have three options as mentioned above. Option 1 is automated and finds all the repositories within an organisation you have admin access to. Option 2 is automated and finds all the repositories within an organisation based on the language you specify. Or, Option 3, which is a manual entry of the repositories you would like to run this script on. See more information below.
+The first step is collecting the repositories you would like to run this script on. You have four options as mentioned above:
+
+- Option 1 is automated and finds all repositories in all organizations
+- Option 2 is automated and finds all the repositories within an organisation you have admin access to.
+- Option 3 is automated and finds all the repositories within an organisation based on the language you specify.
+- Option 4, which is a manual entry of the repositories you would like to run this script on. See more information below.
 
 #### **OPTION 1** (How We Are Running it)
 
