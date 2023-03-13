@@ -56,11 +56,11 @@ class ReposBatcher(RunnableClass):
             "orgs": {}
         }
 
-        for org_name in all_together:
+        for org_name in sorted(all_together):
             print(f"Look in {org_name}")
             org_item = all_together[org_name]
 
-            for repo_name in org_item:
+            for repo_name in sorted(org_item):
                 repo_item = org_item[repo_name]
                 if not self._has_at_least_one_supported_language(repo_item):
                     unsupported_repos["count"] += 1
@@ -89,10 +89,10 @@ class ReposBatcher(RunnableClass):
     def _add_run_info(self, repos: dict):
         total = repos["count"]
         running_count = 1
-        for org_name in repos["orgs"]:
+        for org_name in sorted(repos["orgs"]):
             org_item = repos["orgs"][org_name]
 
-            for repo_name in org_item:
+            for repo_name in sorted(org_item):
                 repo_item = org_item[repo_name]
                 repo_item["runInfo"] = f"{running_count} of {total}"
                 running_count += 1
@@ -203,7 +203,6 @@ class ReposBatcher(RunnableClass):
         print(f"Load {param.org} Repos...")
 
         repos_with_code_scan = self._find_code_scan_workflows_in_org(param.org, param.headers)
-        print(repos_with_code_scan)
 
         org_results = self._load_from_file_if_exists(PathHelper.get_org_repos(param.org))
         if not org_results:
@@ -257,6 +256,7 @@ class ReposBatcher(RunnableClass):
 
 
     def _find_code_scan_workflows_in_org(self, org_name: str, headers: dict) -> dict:
+        print(f"Check for repos in {org_name} that already have code scanning...")
         existing = self._load_from_file_if_exists(PathHelper.get_org_code_scan_repos(org_name))
         if existing:
             return existing
@@ -268,6 +268,7 @@ class ReposBatcher(RunnableClass):
         response = self._run_get(url, headers, sleep_secs)
 
         results = response.json()
+        print(f"{org_name} has {results['total_count']} repos with code scanning.")
         self._save_results(results, PathHelper.get_org_code_scan_repos(org_name))
         return results
 
