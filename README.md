@@ -205,6 +205,17 @@ After the script has run, please head to your `~/Desktop` directory and delete t
 
 The reason you need this within your `.devcontainer/devcontainer.json` file is the `GITHUB_TOKEN` tied to the Codespace will need to access other repositories within your organization which this script may interact with. You will need to create a new Codespace **after** you have added the above and pushed it to your repository.
 
+### Outcome
+
+Once complete the following will happen:
+
+1. PR entry will be added to `prs.txt`
+1. All selected options will be enabled.
+
+As an example if all language criteria were to be met the following example shows what the `code-analysis.yml` file may look like.
+
+- [Example code-analysis.yml](/example-code-analysis.yml.text)
+
 # About Original Parent Repo
 
 This repository was originally created as a fork of [ghas-enablement](https://github.com/NickLiffen/ghas-enablement). It has, since, been converted to a standalone repository that is disconnected from the parent. This repo has had a lot of changes made to it to make it more customizable for our specific needs.
