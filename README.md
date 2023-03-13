@@ -110,7 +110,23 @@ There are two simple steps to run:
 
 The first step is collecting the repositories you would like to run this script on. You have three options as mentioned above. Option 1 is automated and finds all the repositories within an organisation you have admin access to. Option 2 is automated and finds all the repositories within an organisation based on the language you specify. Or, Option 3, which is a manual entry of the repositories you would like to run this script on. See more information below.
 
-**OPTION 1** (Preferred)
+#### **OPTION 1** (How We Are Running it)
+
+This options supports enabling GHAS in batches. New code, which has been written in python, has been written to handle this. A new property in the `.env` file has been created called `BATCH_ORGS`. This is a comma-separated list of github organization names (no spaces should exist in between commas). This option will asynchronously lookup orgs, repos and their languages, and whether they already have the code scanning workflow this tool creates.
+
+> Note: In order to save API calls results are saved in `repo-results/YYYY-MM-DD` directory.
+
+How to Run the batching functionality to create `repos.json` files:
+
+1. Set `REPOS_PER_BATCH` value in `.env` file.
+1. Run the debug configuration `Python: Main` and select option 3 `REPOS_BATCHER` by typing `3` and pressing `ENTER`
+   - The batched repos.json files are saved to `repo-results/YYYY-MM-DD/batches`
+1. Run `Python: Main` again but this time select selection option 2 `PREPARE_BATCH` by typing `2` and pressing `ENTER`
+   - Enter the batch number that will be run by typing the number and pressing `ENTER`.
+1. Run what is in [Step Two](#step-two)
+1. Run this over and over again until all batches have been run.
+
+#### **OPTION 2**
 
 ```bash
 yarn run getRepos // In the `.env` set the `LANGUAGE_TO_CHECK=` to the language. E.G `python`, `javascript`, `go`, `hcl`, `powershell`, etc.
@@ -122,7 +138,7 @@ When using GitHub Actions, we commonly find (especially for non-build languages 
 
 This script only returns repositories where CodeQL results have not already been uploaded to code scanning. If any CodeQL results have been uploaded to a repositories code scanning feature, that repository will not be returned to this list. The motivation behind this is not to raise pull requests on repositories where CodeQL has already been enabled.
 
-**OPTION 2**
+#### **OPTION 3**
 
 ```bash
 yarn run getRepos // or npm run getRepos
@@ -132,7 +148,7 @@ Similar to step one, another automated approach is to enable by user access. Thi
 
 This script only returns repositories where CodeQL results have not already been uploaded to code scanning. If any CodeQL results have been uploaded to a repositories code scanning feature, that repository will not be returned to this list. The motivation behind this is not to raise pull requests on repositories where CodeQL has already been enabled.
 
-**OPTION 3**
+#### **OPTION 4**
 
 Create a file called `repos.json` within the `./bin/` directory. This file needs to have an array of organization objects, each with its own array of repository objects. The structure of the objects should look like this:
 
@@ -168,22 +184,6 @@ As you can see, the object takes a number of boolean keys:
   - The name of the repo in the following syntax: `org-name/repo-name`.
 
 **NOTE:** The account that generated the PAT needs to have `write` access or higher over any repository that you include within the `repos` key.
-
-**OPTION 4**
-
-Option 4 supports enabling GHAS in batches. New code, which has been written in python, has been written to handle this. A new property in the `.env` file has been created called `BATCH_ORGS`. This is a comma-separated list of github organization names (no spaces should exist in between commas). This option will asynchronously lookup orgs, repos and their languages, and whether they already have the code scanning workflow this tool creates.
-
-> Note: In order to save API calls results are saved in `repo-results/YYYY-MM-DD` directory.
-
-How to Run the batching functionality to create `repos.json` files:
-
-1. Set `REPOS_PER_BATCH` value in `.env` file.
-1. Run the debug configuration `Python: Main` and select option 3 `REPOS_BATCHER` by typing `3` and pressing `ENTER`
-   - The batched repos.json files are saved to `repo-results/YYYY-MM-DD/batches`
-1. Run `Python: Main` again but this time select selection option 2 `PREPARE_BATCH` by typing `2` and pressing `ENTER`
-   - Enter the batch number that will be run by typing the number and pressing `ENTER`.
-1. Run what is in [Step Two](#step-two)
-1. Run this over and over again until all batches have been run.
 
 ### Step Two
 
