@@ -53,6 +53,7 @@ If you pick Dependabot Security Updates:
 - [Yarn](https://yarnpkg.com/)\*
 - [TypeScript](https://www.typescriptlang.org/download)
 - [Git](https://git-scm.com/downloads) installed on the (user's) machine running this tool.
+- [Python](https://www.python.org/downloads/) If using first option in [Step 1](#step-one)
 - A Personal Access Token (PAT) that has at least admin access over the repositories they want to enable Code Scanning on.
 - Some basic software development skills, e.g., can navigate their way around a terminal or command prompt.
 
