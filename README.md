@@ -83,7 +83,7 @@ If you pick Dependabot Security Updates:
 
 1.  Update the `.env` with the required values. Please pick one of the authentication methods for interacting with GitHub. You can either fill in the `GITHUB_API_TOKEN` with a PAT that has access to the Org. OR, fill in all the values required for a GitHub App. **Note**: It is recommended to pick the GitHub App choice if running on thousands of repositories, as this gives you more API requests versus a PAT.
 
-1.  Update the `GITHUB_ORG` value found within the `.env`. Remove the `XXXX` and replace that with the name of the GitHub Organisation you would like to use as part of this script.
+1.  Update the `GITHUB_ORG` value found within the `.env`. Remove the `XXXX` and replace that with the name of the GitHub organization you would like to use as part of this script.
 
 1.  Update the `LANGUAGE_TO_CHECK` value found within the `.env`. Remove the `XXXX` and replace that with the language you would like to use as a filter when collecting repositories. **Note**: Please make sure these are lowercase values, such as: `javascript`, `python`, `go`, `ruby`, `hcl`, `powershell`, etc.
 
@@ -112,8 +112,8 @@ There are two simple steps to run:
 The first step is collecting the repositories you would like to run this script on. You have four options as mentioned above:
 
 - Option 1 is automated and finds all repositories in all organizations
-- Option 2 is automated and finds all the repositories within an organisation you have admin access to.
-- Option 3 is automated and finds all the repositories within an organisation based on the language you specify.
+- Option 2 is automated and finds all the repositories within an organization you have admin access to.
+- Option 3 is automated and finds all the repositories within an organization based on the language you specify.
 - Option 4, which is a manual entry of the repositories you would like to run this script on. See more information below.
 
 #### **OPTION 1** (How We Are Running it)
@@ -203,7 +203,7 @@ This will run a script, and you should see output text appearing on your screen.
 
 After the script has run, please head to your `~/Desktop` directory and delete the `tempGitLocations` directory that has been automatically created.
 
-The reason you need this within your `.devcontainer/devcontainer.json` file is the `GITHUB_TOKEN` tied to the Codespace will need to access other repositories within your organisation which this script may interact with. You will need to create a new Codespace **after** you have added the above and pushed it to your repository.
+The reason you need this within your `.devcontainer/devcontainer.json` file is the `GITHUB_TOKEN` tied to the Codespace will need to access other repositories within your organization which this script may interact with. You will need to create a new Codespace **after** you have added the above and pushed it to your repository.
 
 # About Original Parent Repo
 
