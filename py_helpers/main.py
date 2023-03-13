@@ -1,6 +1,5 @@
 from enum import Enum
 from pydoc import locate
-from shared.path_helper import PathHelper
 from shared.runnable_class import RunnableClass
 
 class ToolName(Enum):
@@ -29,7 +28,7 @@ class MainClass:
                 module_path = the_enum.value
                 break
 
-        if module_path == None:
+        if module_path is None:
             print(f"ERROR: Could not find Tool {number}")
             return
 
