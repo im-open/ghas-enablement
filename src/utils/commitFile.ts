@@ -51,7 +51,7 @@ const placeholderDotnetVersion = "PLACEHOLDER_DOTNET_VERSION";
 const placeholderSolutionFile = "PLACEHOLDER_SOLUTION_FILE";
 const placeholderOrg = "PLACEHOLDER_ORG";
 
-const runs_on_windows = "[self-hosted, windows-2019]";
+const runs_on_windows = "im-windows";
 const runs_on_linux = "im-ghas-linux";
 const templateCs = loadTemplate("template-csharp.yml");
 const templateOthers = loadTemplate("template-other-langs.yml");

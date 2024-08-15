@@ -46,7 +46,7 @@ jobs:
 
 
   CodeQL-Scan-csharp:
-    runs-on: im-ghas-linux # if windows needed [self-hosted, windows-2019]
+    runs-on: im-ghas-linux # if windows needed im-windows (depending on your needs, you may need to make a custom DYN windows runner based off the im-windows runner)
 
     env:
       DOTNET_VERSION: |
